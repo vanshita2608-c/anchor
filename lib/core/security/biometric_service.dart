@@ -13,6 +13,10 @@ class BiometricService {
     }
   }
 
+  Future<bool> authenticateWithBiometrics({required String reason}) async {
+    return authenticate(localizedReason: reason);
+  }
+
   Future<bool> authenticate({required String localizedReason}) async {
     try {
       return await _auth.authenticate(

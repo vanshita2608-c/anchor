@@ -21,8 +21,15 @@ class KeyHierarchyManager {
 
   SecretKey? get activeVek => _unwrappedVek;
 
+  /// Checks if a master password vault key has already been created on this device
+  Future<bool> hasExistingVault() async {
+    final salt = await _secureStorage.read(key: _keySalt);
+    final wrappedVek = await _secureStorage.read(key: _keyWrappedVek);
+    return salt != null && wrappedVek != null;
+  }
+
   /// Initializes a new master password vault key hierarchy
-  Future<void> setupNewVault(String masterPassword) async {
+  Future<String> setupNewVault(String masterPassword) async {
     final salt = CryptoEngine.generateSalt();
     final kek = await CryptoEngine.deriveKeyFromPassword(masterPassword, salt);
     final vek = await CryptoEngine.generateVaultEncryptionKey();
@@ -41,6 +48,10 @@ class KeyHierarchyManager {
     await _secureStorage.write(key: _keyVekMac, value: encryptedVek['mac']);
 
     _unwrappedVek = vek;
+
+    // Generate 16-character Offline Recovery Key
+    final recoveryCode = 'ANCHOR-${salt.substring(0, 4).toUpperCase()}-${salt.substring(4, 8).toUpperCase()}-${salt.substring(8, 12).toUpperCase()}';
+    return recoveryCode;
   }
 
   /// Unlocks the vault using the Master Password

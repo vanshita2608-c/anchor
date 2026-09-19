@@ -3,9 +3,9 @@ import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/documents/documents_screen.dart';
-import '../../features/passwords/passwords_screen.dart';
 import '../../features/family/family_screen.dart';
 import '../../features/security/security_screen.dart';
+import '../../features/profile/profile_screen.dart';
 
 class AnchorNavShell extends StatefulWidget {
   const AnchorNavShell({Key? key}) : super(key: key);
@@ -20,57 +20,43 @@ class _AnchorNavShellState extends State<AnchorNavShell> {
   final List<Widget> _screens = const [
     DashboardScreen(),
     DocumentsScreen(),
-    PasswordsScreen(),
     FamilyScreen(),
     SecurityScreen(),
+    ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AnchorColors.bgWarmCream,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AnchorColors.borderSand, width: 1)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-          selectedLabelStyle: AnchorTypography.labelMedium.copyWith(fontWeight: FontWeight.bold),
-          unselectedLabelStyle: AnchorTypography.labelMedium,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.grid_view_rounded),
-              activeIcon: Icon(Icons.grid_view_rounded, color: AnchorColors.primaryNavy),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.folder_special_outlined),
-              activeIcon: Icon(Icons.folder_special, color: AnchorColors.primaryNavy),
-              label: 'Vault',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.vpn_key_outlined),
-              activeIcon: Icon(Icons.vpn_key_rounded, color: AnchorColors.primaryNavy),
-              label: 'Passwords',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people_outline_rounded),
-              activeIcon: Icon(Icons.people_rounded, color: AnchorColors.primaryNavy),
-              label: 'Family',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shield_outlined),
-              activeIcon: Icon(Icons.shield_rounded, color: AnchorColors.primaryNavy),
-              label: 'Security',
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        backgroundColor: AnchorColors.cardWhite,
+        selectedItemColor: AnchorColors.primaryNavy,
+        unselectedItemColor: AnchorColors.textSecondary,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: AnchorTypography.labelMedium.copyWith(fontWeight: FontWeight.bold),
+        unselectedLabelStyle: AnchorTypography.labelMedium,
+        items: const [
+          BottomNavigationBarView(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarView(icon: Icon(Icons.folder_special_outlined), activeIcon: Icon(Icons.folder_special), label: 'Vault'),
+          BottomNavigationBarView(icon: Icon(Icons.group_outlined), activeIcon: Icon(Icons.group), label: 'Family'),
+          BottomNavigationBarView(icon: Icon(Icons.shield_outlined), activeIcon: Icon(Icons.shield), label: 'Security'),
+          BottomNavigationBarView(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+        ],
       ),
     );
   }
+}
+
+class BottomNavigationBarView extends BottomNavigationBarItem {
+  const BottomNavigationBarView({
+    required Widget icon,
+    required Widget activeIcon,
+    required String label,
+  }) : super(icon: icon, activeIcon: activeIcon, label: label);
 }

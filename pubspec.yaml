@@ -16,6 +16,7 @@ dependencies:
 
   # Backend & Realtime
   supabase_flutter: ^2.5.2
+  google_sign_in: ^6.2.2
 
   # Security & Cryptography
   flutter_secure_storage: ^9.0.0
@@ -23,7 +24,6 @@ dependencies:
   cryptography: ^2.7.0
 
   # AI & OCR
-  google_mlkit_text_recognition: ^0.13.0
   google_generative_ai: ^0.4.0
 
   # UI, Icons, Charts & Animations
@@ -54,4 +54,19 @@ flutter:
   assets:
     - assets/
     - assets/images/
+    - assets/fonts/
 
+  fonts:
+    - family: Otama
+      fonts:
+        - asset: assets/fonts/Otama-Regular.ttf
+        - asset: assets/fonts/Otama-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Otama-SemiBold.ttf
+          weight: 600
+    - family: OtamaDisplay
+      fonts:
+        - asset: assets/fonts/OtamaDisplay-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/OtamaDisplay-Black.ttf
+          weight: 900
