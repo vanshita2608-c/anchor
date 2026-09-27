@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/services/family_service.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 import '../../shared/widgets/anchor_nav_shell.dart';
@@ -7,18 +8,16 @@ class AddFamilyMembersScreen extends StatefulWidget {
   final String vaultName;
 
   const AddFamilyMembersScreen({
-    Key? key,
+    super.key,
     this.vaultName = 'Shah Family',
-  }) : super(key: key);
+  });
 
   @override
   State<AddFamilyMembersScreen> createState() => _AddFamilyMembersScreenState();
 }
 
 class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
-  final List<Map<String, String>> _members = [
-    {'name': 'Vanshita Shah', 'email': 'vanshitashah848@gmail.com', 'relation': 'Owner', 'role': 'Owner'},
-  ];
+  final List<Map<String, String>> _members = [];
 
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -28,22 +27,39 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
   final List<String> _relations = ['Mother', 'Father', 'Sister', 'Brother', 'Spouse', 'Child', 'Other'];
   final List<String> _roles = ['Admin', 'Member', 'Viewer', 'Emergency Contact'];
 
+  @override
+  void initState() {
+    super.initState();
+    FamilyService().setVaultName(widget.vaultName);
+    FamilyService().initializeOwner();
+    _members.addAll(FamilyService().members);
+  }
+
   void _addMember() {
     final name = _nameCtrl.text.trim();
     final email = _emailCtrl.text.trim();
 
     if (name.isEmpty || email.isEmpty) return;
 
+    final newMember = {
+      'name': name,
+      'email': email,
+      'relation': _selectedRelation,
+      'role': _selectedRole,
+    };
+
     setState(() {
-      _members.add({
-        'name': name,
-        'email': email,
-        'relation': _selectedRelation,
-        'role': _selectedRole,
-      });
+      _members.add(newMember);
       _nameCtrl.clear();
       _emailCtrl.clear();
     });
+
+    FamilyService().addMember(
+      name: name,
+      email: email,
+      relation: _selectedRelation,
+      role: _selectedRole,
+    );
 
     Navigator.pop(context);
   }
@@ -198,6 +214,7 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () {
+                    FamilyService().setMembers(_members);
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (_) => const AnchorNavShell()),
                       (route) => false,

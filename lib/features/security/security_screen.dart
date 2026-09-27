@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../core/security/biometric_service.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 
 class SecurityScreen extends StatefulWidget {
-  const SecurityScreen({Key? key}) : super(key: key);
+  const SecurityScreen({super.key});
 
   @override
   State<SecurityScreen> createState() => _SecurityScreenState();
@@ -12,6 +13,23 @@ class SecurityScreen extends StatefulWidget {
 class _SecurityScreenState extends State<SecurityScreen> {
   bool _biometricsEnabled = true;
   bool _autoLockEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSecuritySettings();
+  }
+
+  void _loadSecuritySettings() async {
+    final bioEnabled = await BiometricService().isBiometricsEnabled();
+    final lockEnabled = await BiometricService().isAutoLockEnabled();
+    if (mounted) {
+      setState(() {
+        _biometricsEnabled = bioEnabled;
+        _autoLockEnabled = lockEnabled;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +105,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     title: Text('Face ID / Fingerprint Unlock', style: AnchorTypography.titleSmall),
                     subtitle: Text('Unlock Anchor securely without typing Master Password', style: AnchorTypography.bodySmall),
                     value: _biometricsEnabled,
-                    onChanged: (val) => setState(() => _biometricsEnabled = val),
+                    onChanged: (val) async {
+                      setState(() => _biometricsEnabled = val);
+                      await BiometricService().setBiometricsEnabled(val);
+                    },
                   ),
                   const Divider(color: AnchorColors.borderSand, height: 1),
                   SwitchListTile(
@@ -95,7 +116,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     title: Text('Auto-Lock Vault on Background', style: AnchorTypography.titleSmall),
                     subtitle: Text('Immediately locks vault when leaving the app', style: AnchorTypography.bodySmall),
                     value: _autoLockEnabled,
-                    onChanged: (val) => setState(() => _autoLockEnabled = val),
+                    onChanged: (val) async {
+                      setState(() => _autoLockEnabled = val);
+                      await BiometricService().setAutoLockEnabled(val);
+                    },
                   ),
                   const Divider(color: AnchorColors.borderSand, height: 1),
                   ListTile(

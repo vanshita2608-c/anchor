@@ -6,4 +6,9 @@ class AppConfig {
 
   static const String appName = 'Anchor';
   static const String appTagline = 'Your Family. Secured.';
+
+  // Google OAuth Credentials
+  static const String googleServerClientId = '6673167196-gkd8vppi7cg4npvnlf4d5137ld1ttde6.apps.googleusercontent.com';
+  static const String googleIosClientId = '6673167196-c7cq5go0mir0gumhg2v2api24ai900j1.apps.googleusercontent.com';
 }
+

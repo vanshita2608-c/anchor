@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/security/biometric_service.dart';
 import '../../core/security/key_hierarchy_manager.dart';
+import '../../core/services/google_auth_service.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 import '../../shared/widgets/anchor_logo_header.dart';
-import '../vault_setup/add_family_members_screen.dart';
+import '../../shared/widgets/anchor_nav_shell.dart';
+import '../onboarding/welcome_screen.dart';
 import 'auth_screen.dart';
 
 class MasterPasswordScreen extends StatefulWidget {
@@ -41,6 +43,32 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
         _isFirstTime = !exists;
         _isLoading = false;
       });
+      if (exists) {
+        _attemptBiometricUnlock();
+      }
+    }
+  }
+
+  Future<void> _attemptBiometricUnlock() async {
+    final enabled = await BiometricService().isBiometricsEnabled();
+    if (!enabled) return;
+
+    final available = await BiometricService().isBiometricsAvailable();
+    if (!available) return;
+
+    final authenticated = await BiometricService().authenticate(
+      localizedReason: 'Unlock Anchor Vault using biometrics',
+    );
+
+    if (authenticated) {
+      final success = await KeyHierarchyManager().unlockWithSavedBiometrics();
+      if (success && mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const AnchorNavShell(),
+          ),
+        );
+      }
     }
   }
 
@@ -79,28 +107,41 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
       } else {
         final success = await KeyHierarchyManager().unlockVault(pwd);
         if (!success) {
-          await KeyHierarchyManager().setupNewVault(pwd);
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _errorMessage = 'Incorrect Master Password. Please try again.';
+            });
+          }
+          return;
         }
       }
 
       if (!mounted) return;
 
-      // Ask for Biometric authentication enrollment
-      await BiometricService().authenticateWithBiometrics(
-        reason: 'Enable biometric unlock for your Anchor vault',
-      );
-
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => AddFamilyMembersScreen(vaultName: widget.vaultName),
-        ),
-      );
+      if (_isFirstTime) {
+        final currentUser = Supabase.instance.client.auth.currentUser;
+        final userName = currentUser?.userMetadata?['full_name'] ??
+            currentUser?.email?.split('@').first ??
+            'User';
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => WelcomeScreen(userName: userName),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const AnchorNavShell(),
+          ),
+        );
+      }
     } catch (e) {
+      debugPrint('Master Password error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Error setting up Master Password.';
+          _errorMessage = 'Error processing Master Password. Please try again.';
         });
       }
     }
@@ -238,6 +279,26 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
                   ),
                 ),
 
+                if (!_isFirstTime) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AnchorColors.primaryNavy, width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: _attemptBiometricUnlock,
+                      icon: const Icon(Icons.fingerprint, color: AnchorColors.primaryNavy),
+                      label: Text(
+                        'Unlock with Face ID / Fingerprint',
+                        style: AnchorTypography.buttonText.copyWith(color: AnchorColors.primaryNavy),
+                      ),
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 16),
 
                 TextButton(
@@ -251,8 +312,8 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
                   },
                   child: Text(
                     _isFirstTime
-                        ? 'Already created a vault? Unlock Vault'
-                        : 'First time user or forgot password? Create New Vault',
+                        ? 'Already have a vault? Unlock Vault'
+                        : 'Forgot password? Create New Vault',
                     style: AnchorTypography.bodyMedium.copyWith(
                       color: AnchorColors.ceruleanTeal,
                       decoration: TextDecoration.underline,
@@ -281,10 +342,12 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
 
                 TextButton.icon(
                   onPressed: () async {
-                    await Supabase.instance.client.auth.signOut();
+                    await GoogleAuthService().signOut();
                     if (!mounted) return;
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const AuthScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const AuthScreen(autoForwardIfAuthenticated: false),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.logout, size: 18, color: AnchorColors.textSecondary),
@@ -301,3 +364,4 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
     );
   }
 }
+

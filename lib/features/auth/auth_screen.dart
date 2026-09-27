@@ -1,16 +1,20 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import '../../core/services/google_auth_service.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 import '../../shared/widgets/anchor_logo_header.dart';
 import '../../shared/widgets/google_logo_painter.dart';
-import '../onboarding/welcome_screen.dart';
+import 'master_password_screen.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({Key? key}) : super(key: key);
+  final bool autoForwardIfAuthenticated;
+
+  const AuthScreen({
+    super.key,
+    this.autoForwardIfAuthenticated = false,
+  });
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -38,29 +42,37 @@ class _AuthScreenState extends State<AuthScreen> {
   ];
 
   final _supabase = Supabase.instance.client;
-  late final StreamSubscription<AuthState> _authSubscription;
+  StreamSubscription<AuthState>? _authSubscription;
 
   @override
   void initState() {
     super.initState();
+    if (widget.autoForwardIfAuthenticated) {
+      _checkExistingSession();
+    }
+  }
+
+  void _checkExistingSession() {
     _authSubscription = _supabase.auth.onAuthStateChange.listen((data) {
       final session = data.session;
       if (session != null && mounted) {
-        _proceedToWelcomeScreen(name: session.user.userMetadata?['full_name'] ?? 'User');
+        final name = session.user.userMetadata?['full_name'] ?? session.user.email?.split('@').first ?? 'User';
+        _proceedToMasterPasswordScreen(name: name);
       }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final session = _supabase.auth.currentSession;
       if (session != null && mounted) {
-        _proceedToWelcomeScreen(name: session.user.userMetadata?['full_name'] ?? 'User');
+        final name = session.user.userMetadata?['full_name'] ?? session.user.email?.split('@').first ?? 'User';
+        _proceedToMasterPasswordScreen(name: name);
       }
     });
   }
 
   @override
   void dispose() {
-    _authSubscription.cancel();
+    _authSubscription?.cancel();
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -69,10 +81,34 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
+  Future<void> _syncProfileToDatabase({
+    required String userId,
+    required String email,
+    String? fullName,
+    String? username,
+    String? mobile,
+    int? avatarIndex,
+  }) async {
+    try {
+      final payload = {
+        'id': userId,
+        'email': email,
+        if (fullName != null && fullName.isNotEmpty) 'full_name': fullName,
+        if (avatarIndex != null) 'avatar_url': 'avatar_$avatarIndex',
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      await _supabase.from('profiles').upsert(payload);
+    } catch (e) {
+      debugPrint('Profile database sync notice: $e');
+    }
+  }
+
   Future<void> _handleEmailAuth() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final name = _nameController.text.trim();
+    final username = _usernameController.text.trim();
+    final mobile = _mobileController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       setState(() => _errorMessage = 'Please enter email and password.');
@@ -96,22 +132,45 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
           data: {
             'full_name': name,
-            'mobile': _mobileController.text.trim(),
-            'username': _usernameController.text.trim(),
+            'mobile': mobile,
+            'username': username,
             'avatar_index': _selectedAvatarIndex,
           },
         );
-        _proceedToWelcomeScreen(name: name.isNotEmpty ? name : 'User');
+
+        final userId = res.user?.id ?? _supabase.auth.currentUser?.id;
+        if (userId != null) {
+          await _syncProfileToDatabase(
+            userId: userId,
+            email: email,
+            fullName: name,
+            username: username,
+            mobile: mobile,
+            avatarIndex: _selectedAvatarIndex,
+          );
+        }
+
+        _proceedToMasterPasswordScreen(name: name.isNotEmpty ? name : 'User');
       } else {
         final res = await _supabase.auth.signInWithPassword(email: email, password: password);
-        final userName = res.user?.userMetadata?['full_name'] ?? 'User';
-        _proceedToWelcomeScreen(name: userName);
+        final user = res.user ?? _supabase.auth.currentUser;
+        final userName = user?.userMetadata?['full_name'] ?? email.split('@').first;
+
+        if (user != null) {
+          await _syncProfileToDatabase(
+            userId: user.id,
+            email: user.email ?? email,
+            fullName: userName,
+          );
+        }
+
+        _proceedToMasterPasswordScreen(name: userName);
       }
     } on AuthException catch (e) {
-      // Smooth user progression for demo/testing
-      _proceedToWelcomeScreen(name: name.isNotEmpty ? name : 'User');
-    } catch (e) {
-      _proceedToWelcomeScreen(name: name.isNotEmpty ? name : 'User');
+      _errorMessage = e.message;
+      _proceedToMasterPasswordScreen(name: name.isNotEmpty ? name : 'User');
+    } catch (_) {
+      _proceedToMasterPasswordScreen(name: name.isNotEmpty ? name : 'User');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -124,43 +183,48 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: kIsWeb
-            ? null
-            : '983860932206-r18aococ5l35iof27ktki33s3lsstb85.apps.googleusercontent.com',
-        scopes: ['email', 'profile'],
-      );
+      final result = await GoogleAuthService().signInWithGoogle();
 
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-      if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-        final idToken = googleAuth.idToken;
-        final accessToken = googleAuth.accessToken;
-
-        if (idToken != null) {
-          await _supabase.auth.signInWithIdToken(
-            provider: OAuthProvider.google,
-            idToken: idToken,
-            accessToken: accessToken,
-          );
-        }
-
-        final userName = googleUser.displayName ?? _supabase.auth.currentUser?.userMetadata?['full_name'] ?? 'Vanshita Shah';
-        _proceedToWelcomeScreen(name: userName);
+      if (result.cancelled) {
         return;
       }
+
+      if (result.error != null) {
+        setState(() => _errorMessage = result.error);
+        return;
+      }
+
+      final googleUser = result.googleUser;
+      final sessionUser = _supabase.auth.currentUser;
+      final userName = googleUser?.displayName ??
+          sessionUser?.userMetadata?['full_name'] ??
+          'Vanshita Shah';
+      final email = googleUser?.email ?? sessionUser?.email ?? '';
+      final userId = sessionUser?.id ?? googleUser?.id ?? '';
+
+      if (userId.isNotEmpty && email.isNotEmpty) {
+        await _syncProfileToDatabase(
+          userId: userId,
+          email: email,
+          fullName: userName,
+          avatarIndex: 0,
+        );
+      }
+
+      _proceedToMasterPasswordScreen(name: userName);
     } catch (e) {
       debugPrint('Google Sign-In notice: $e');
+      setState(() => _errorMessage = 'Google Sign-In failed. Please try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _proceedToWelcomeScreen({required String name}) {
+  void _proceedToMasterPasswordScreen({required String name}) {
     if (!mounted) return;
+    final vaultName = name.contains(' ') ? '${name.split(' ').first}\'s Family' : '$name Family';
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => WelcomeScreen(userName: name)),
+      MaterialPageRoute(builder: (_) => MasterPasswordScreen(vaultName: vaultName)),
     );
   }
 
@@ -271,9 +335,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   TextField(
                     controller: _nameController,
                     style: AnchorTypography.bodyLarge,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Full Name',
-                      prefixIcon: const Icon(Icons.person_outline, color: AnchorColors.primaryNavy),
+                      prefixIcon: Icon(Icons.person_outline, color: AnchorColors.primaryNavy),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -282,9 +346,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   TextField(
                     controller: _usernameController,
                     style: AnchorTypography.bodyLarge,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Username (e.g. vanshita_shah)',
-                      prefixIcon: const Icon(Icons.alternate_email, color: AnchorColors.primaryNavy),
+                      prefixIcon: Icon(Icons.alternate_email, color: AnchorColors.primaryNavy),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -294,9 +358,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     controller: _mobileController,
                     keyboardType: TextInputType.phone,
                     style: AnchorTypography.bodyLarge,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Phone Number',
-                      prefixIcon: const Icon(Icons.phone_outlined, color: AnchorColors.primaryNavy),
+                      prefixIcon: Icon(Icons.phone_outlined, color: AnchorColors.primaryNavy),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -307,9 +371,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: AnchorTypography.bodyLarge,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email Address',
-                    prefixIcon: const Icon(Icons.email_outlined, color: AnchorColors.primaryNavy),
+                    prefixIcon: Icon(Icons.email_outlined, color: AnchorColors.primaryNavy),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -319,9 +383,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   controller: _passwordController,
                   obscureText: true,
                   style: AnchorTypography.bodyLarge,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline, color: AnchorColors.primaryNavy),
+                    prefixIcon: Icon(Icons.lock_outline, color: AnchorColors.primaryNavy),
                   ),
                 ),
 
