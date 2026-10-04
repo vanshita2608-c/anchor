@@ -17,7 +17,7 @@ class BiometricService {
     try {
       final canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
       final isDeviceSupported = await _auth.isDeviceSupported();
-      return canAuthenticateWithBiometrics && isDeviceSupported;
+      return canAuthenticateWithBiometrics || isDeviceSupported;
     } catch (e) {
       debugPrint('Biometrics check notice: $e');
       return false;

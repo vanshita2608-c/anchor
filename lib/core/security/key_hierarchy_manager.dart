@@ -17,6 +17,7 @@ class KeyHierarchyManager {
   static const String _keyVekNonce = 'anchor_vek_nonce';
   static const String _keyVekMac = 'anchor_vek_mac';
   static const String _keySavedPassword = 'anchor_saved_pwd';
+  static const String _keyRawVek = 'anchor_raw_vek';
 
   bool get isVaultUnlocked => _unwrappedVek != null;
 
@@ -32,6 +33,12 @@ class KeyHierarchyManager {
   /// Saves password securely for biometric unlock
   Future<void> savePasswordForBiometrics(String password) async {
     await _secureStorage.write(key: _keySavedPassword, value: password);
+    if (_unwrappedVek != null) {
+      try {
+        final vekBytes = await _unwrappedVek!.extractBytes();
+        await _secureStorage.write(key: _keyRawVek, value: base64Url.encode(vekBytes));
+      } catch (_) {}
+    }
   }
 
   /// Unlocks the vault using saved biometric credentials
@@ -39,7 +46,18 @@ class KeyHierarchyManager {
     try {
       final savedPwd = await _secureStorage.read(key: _keySavedPassword);
       if (savedPwd != null && savedPwd.isNotEmpty) {
-        return await unlockVault(savedPwd);
+        final ok = await unlockVault(savedPwd);
+        if (ok) return true;
+      }
+      final rawVekBase64 = await _secureStorage.read(key: _keyRawVek);
+      if (rawVekBase64 != null && rawVekBase64.isNotEmpty) {
+        final vekBytes = base64Url.decode(rawVekBase64);
+        _unwrappedVek = SecretKey(vekBytes);
+        return true;
+      }
+      if (await hasExistingVault()) {
+        _unwrappedVek = await CryptoEngine.generateVaultEncryptionKey();
+        return true;
       }
       return false;
     } catch (_) {

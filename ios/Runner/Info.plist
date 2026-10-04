@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Anchor requires Face ID to securely unlock your encrypted family vault.</string>
 	<key>GIDClientID</key>
 	<string>6673167196-c7cq5go0mir0gumhg2v2api24ai900j1.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
