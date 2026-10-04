@@ -185,12 +185,12 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       final result = await GoogleAuthService().signInWithGoogle();
 
-      if (result.cancelled) {
+      if (result.error != null) {
+        setState(() => _errorMessage = result.error);
         return;
       }
 
-      if (result.error != null) {
-        setState(() => _errorMessage = result.error);
+      if (result.cancelled) {
         return;
       }
 

@@ -85,8 +85,12 @@ class GoogleAuthService {
       try {
         googleUser = await googleSignIn.authenticate();
       } on GoogleSignInException catch (e) {
+        debugPrint('🔴 GoogleSignInException during authenticate: code=${e.code}, description=${e.description}');
         if (e.code == GoogleSignInExceptionCode.canceled) {
-          return GoogleAuthResult(cancelled: true);
+          return GoogleAuthResult(
+            cancelled: true,
+            error: 'Authentication was canceled or rejected by Google Play Services: ${e.description ?? e.code.name}',
+          );
         }
         rethrow;
       }
