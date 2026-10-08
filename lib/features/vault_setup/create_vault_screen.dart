@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 import '../../shared/widgets/anchor_logo_header.dart';
@@ -12,8 +13,8 @@ class CreateVaultScreen extends StatefulWidget {
 }
 
 class _CreateVaultScreenState extends State<CreateVaultScreen> {
-  final TextEditingController _vaultNameController = TextEditingController(text: 'Shah Family');
-  final List<String> _suggestions = ['Shah Family', 'My Family', 'Home Vault', 'Our Family', 'Personal Vault'];
+  final TextEditingController _vaultNameController = TextEditingController(text: CurrentUser.defaultVaultName);
+  final List<String> _suggestions = [CurrentUser.defaultVaultName, 'My Family', 'Home Vault', 'Our Family', 'Personal Vault'];
 
   @override
   void dispose() {
@@ -67,7 +68,7 @@ class _CreateVaultScreenState extends State<CreateVaultScreen> {
                         style: AnchorTypography.titleLarge,
                         decoration: const InputDecoration(
                           labelText: 'Vault Name',
-                          hintText: 'e.g. Shah Family',
+                          hintText: 'e.g. My Family',
                           prefixIcon: Icon(Icons.shield_outlined, color: AnchorColors.primaryNavy),
                         ),
                       ),

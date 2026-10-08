@@ -1,25 +1,26 @@
-import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
+import 'current_user.dart';
 
 class FamilyService extends ChangeNotifier {
   static final FamilyService _instance = FamilyService._internal();
   factory FamilyService() => _instance;
   FamilyService._internal();
 
-  String _vaultName = 'Shah Family Vault';
+  String? _vaultName;
   final List<Map<String, String>> _members = [];
 
-  String get vaultName => _vaultName;
+  String get vaultName => _vaultName ?? '${CurrentUser.defaultVaultName} Vault';
   List<Map<String, String>> get members => List.unmodifiable(_members);
   int get memberCount => _members.length;
 
   void initializeOwner() {
-    final user = Supabase.instance.client.auth.currentUser;
-    final email = user?.email ?? 'owner@example.com';
-    final rawName = user?.userMetadata?['full_name'] ??
-        (user?.email != null ? user!.email!.split('@').first : 'Vault Owner');
+    final email = CurrentUser.email;
+    final name = CurrentUser.displayName;
 
-    final name = rawName.toString().isNotEmpty ? rawName.toString() : 'Vault Owner';
+    // A different account signed in: drop the previous user's members.
+    if (_members.isNotEmpty && _members[0]['email'] != email) {
+      reset(notify: false);
+    }
 
     final ownerMap = {
       'name': name,
@@ -27,6 +28,10 @@ class FamilyService extends ChangeNotifier {
       'relation': 'Owner',
       'role': 'Owner',
     };
+
+    // Screens call this from initState; only notify on a real change so
+    // listeners aren't marked dirty mid-build.
+    if (_members.isNotEmpty && mapEquals(_members[0], ownerMap)) return;
 
     if (_members.isEmpty) {
       _members.add(ownerMap);
@@ -59,6 +64,13 @@ class FamilyService extends ChangeNotifier {
       'role': role,
     });
     notifyListeners();
+  }
+
+  /// Clears all in-memory state; called on sign-out.
+  void reset({bool notify = true}) {
+    _vaultName = null;
+    _members.clear();
+    if (notify) notifyListeners();
   }
 
   void setMembers(List<Map<String, String>> membersList) {

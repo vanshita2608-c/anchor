@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/security/biometric_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 
@@ -79,7 +80,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       children: [
                         Text('Vault Health: Excellent', style: AnchorTypography.headlineMedium),
                         const SizedBox(height: 4),
-                        Text('AES-256-GCM zero-knowledge encryption active. 1 weak password needs attention.', style: AnchorTypography.bodySmall),
+                        Text('AES-256-GCM zero-knowledge encryption active.', style: AnchorTypography.bodySmall),
                       ],
                     ),
                   ),
@@ -145,11 +146,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
               ),
               child: Column(
                 children: [
-                  _buildAuditTile('Master Password Key Hierarchy Initialized', 'Device Keychain • Today at 4:00 PM', Icons.vpn_key_outlined),
+                  _buildAuditTile('Master Password Key Hierarchy Initialized', 'Device Keychain', Icons.vpn_key_outlined),
                   const Divider(color: AnchorColors.borderSand, height: 1),
-                  _buildAuditTile('Biometric Authentication Enrolled', 'Face ID • Today at 4:02 PM', Icons.fingerprint),
+                  _buildAuditTile('Biometric Authentication Enrolled', 'Device biometrics', Icons.fingerprint),
                   const Divider(color: AnchorColors.borderSand, height: 1),
-                  _buildAuditTile('Google Account Verification', 'vanshitashah848@gmail.com', Icons.verified_user_outlined),
+                  _buildAuditTile('Google Account Verification', CurrentUser.email, Icons.verified_user_outlined),
                 ],
               ),
             ),

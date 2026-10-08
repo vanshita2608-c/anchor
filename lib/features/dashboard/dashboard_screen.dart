@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/services/current_user.dart';
+import '../../core/services/family_service.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 import '../documents/documents_screen.dart';
@@ -6,18 +8,43 @@ import '../passwords/passwords_screen.dart';
 import '../emergency/emergency_screen.dart';
 import '../family/family_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
-  final String vaultName;
-  final String userName;
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({Key? key}) : super(key: key);
 
-  const DashboardScreen({
-    Key? key,
-    this.vaultName = 'Shah Family',
-    this.userName = 'Vanshita',
-  }) : super(key: key);
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final FamilyService _familyService = FamilyService();
+
+  @override
+  void initState() {
+    super.initState();
+    _familyService.initializeOwner();
+  }
+
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: _familyService,
+      builder: (context, _) => _buildDashboard(context),
+    );
+  }
+
+  Widget _buildDashboard(BuildContext context) {
+    final userName = CurrentUser.firstName;
+    final vaultName = _familyService.vaultName;
+    final memberCount = _familyService.memberCount;
+    final memberLabel = '$memberCount Member${memberCount == 1 ? '' : 's'}';
+
     return Scaffold(
       backgroundColor: AnchorColors.bgWarmCream,
       body: SafeArea(
@@ -33,13 +60,13 @@ class DashboardScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Good evening, $userName', style: AnchorTypography.headlineLarge),
+                      Text('$_greeting, $userName', style: AnchorTypography.headlineLarge),
                       const SizedBox(height: 2),
                       Row(
                         children: [
                           const Icon(Icons.shield, size: 14, color: AnchorColors.ceruleanTeal),
                           const SizedBox(width: 4),
-                          Text('$vaultName Vault • 4 Members', style: AnchorTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+                          Text('$vaultName • $memberLabel', style: AnchorTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ],
@@ -114,15 +141,14 @@ class DashboardScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.warning_amber_rounded, color: AnchorColors.alertCoral, size: 20),
                         const SizedBox(width: 8),
-                        Text('Expiring Soon (3 Items)', style: AnchorTypography.titleMedium.copyWith(color: AnchorColors.alertCoral)),
+                        Text('Expiring Soon', style: AnchorTypography.titleMedium.copyWith(color: AnchorColors.alertCoral)),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _buildExpiryTile('Passport (Vanshita Shah)', 'Expires in 90 days', Icons.card_membership),
-                    const Divider(color: AnchorColors.borderSand, height: 16),
-                    _buildExpiryTile('Car Insurance Policy', 'Expires in 18 days', Icons.directions_car_outlined),
-                    const Divider(color: AnchorColors.borderSand, height: 16),
-                    _buildExpiryTile('MacBook Pro Warranty', 'Expires in 7 days', Icons.laptop_mac),
+                    Text(
+                      'Nothing is expiring soon. Add documents with expiry dates and Anchor will remind you here.',
+                      style: AnchorTypography.bodySmall,
+                    ),
                   ],
                 ),
               ),
@@ -134,7 +160,7 @@ class DashboardScreen extends StatelessWidget {
                   Expanded(
                     child: _buildMetricCard(
                       title: 'Documents',
-                      count: '24 Items',
+                      count: 'Open',
                       icon: Icons.folder_special_outlined,
                       subtitle: 'Identity, Legal, Medical',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DocumentsScreen())),
@@ -144,7 +170,7 @@ class DashboardScreen extends StatelessWidget {
                   Expanded(
                     child: _buildMetricCard(
                       title: 'Passwords',
-                      count: '18 Saved',
+                      count: 'Open',
                       icon: Icons.key_outlined,
                       subtitle: 'OTT, Wi-Fi, Utilities',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PasswordsScreen())),
@@ -158,7 +184,7 @@ class DashboardScreen extends StatelessWidget {
                   Expanded(
                     child: _buildMetricCard(
                       title: 'Family Members',
-                      count: '4 Active',
+                      count: '$memberCount Active',
                       icon: Icons.group_outlined,
                       subtitle: 'Owner, Admin, Member',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FamilyScreen())),
@@ -168,7 +194,7 @@ class DashboardScreen extends StatelessWidget {
                   Expanded(
                     child: _buildMetricCard(
                       title: 'Emergency',
-                      count: 'Configured',
+                      count: 'Set up',
                       icon: Icons.health_and_safety_outlined,
                       subtitle: 'Contacts & Legacy',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmergencyScreen())),
@@ -187,15 +213,7 @@ class DashboardScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AnchorColors.borderSand),
                 ),
-                child: Column(
-                  children: [
-                    _buildActivityTile('Passport Document Added', 'Vanshita Shah • Today at 4:30 PM', Icons.add_circle_outline),
-                    const Divider(color: AnchorColors.borderSand, height: 1),
-                    _buildActivityTile('Netflix Password Shared with Mom', 'Vanshita Shah • Yesterday', Icons.share),
-                    const Divider(color: AnchorColors.borderSand, height: 1),
-                    _buildActivityTile('Car Insurance Expiry Detected', 'Smart OCR Scanner • 2 days ago', Icons.alarm),
-                  ],
-                ),
+                child: _buildActivityTile('No activity yet', 'Items you add or share will show up here', Icons.history),
               ),
               const SizedBox(height: 24),
             ],
@@ -232,25 +250,6 @@ class DashboardScreen extends StatelessWidget {
           Text(label, style: AnchorTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
-    );
-  }
-
-  Widget _buildExpiryTile(String title, String subtitle, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: AnchorColors.primaryNavy),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: AnchorTypography.titleSmall),
-              Text(subtitle, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.alertCoral, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ),
-        const Icon(Icons.arrow_forward_ios, size: 14, color: AnchorColors.textMuted),
-      ],
     );
   }
 

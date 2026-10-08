@@ -21,44 +21,7 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
     'Accounts',
   ];
 
-  final List<Map<String, dynamic>> _passwords = [
-    {
-      'service': 'Netflix (Family Plan)',
-      'category': 'OTT & Entertainment',
-      'username': 'family@shah.com',
-      'password': '••••••••••••',
-      'strength': 'Strong',
-      'shared_with': 'Entire Vault',
-      'icon': Icons.tv_outlined,
-    },
-    {
-      'service': 'Amazon Prime',
-      'category': 'OTT & Entertainment',
-      'username': 'vanshita@gmail.com',
-      'password': '••••••••••••',
-      'strength': 'Strong',
-      'shared_with': 'Selected Members',
-      'icon': Icons.movie_outlined,
-    },
-    {
-      'service': 'Home Wi-Fi (Shah_5G)',
-      'category': 'Utilities',
-      'username': 'Shah_5G',
-      'password': '••••••••••••',
-      'strength': 'Strong',
-      'shared_with': 'Entire Vault',
-      'icon': Icons.wifi,
-    },
-    {
-      'service': 'Flipkart Account',
-      'category': 'Shopping',
-      'username': 'vanshitashah848@gmail.com',
-      'password': '••••••••••••',
-      'strength': 'Moderate',
-      'shared_with': 'Only Me',
-      'icon': Icons.shopping_bag_outlined,
-    },
-  ];
+  final List<Map<String, dynamic>> _passwords = [];
 
   void _showAddPasswordSheet() {
     final serviceCtrl = TextEditingController();
@@ -224,56 +187,69 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
 
           // Passwords List
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: filtered.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final pwd = filtered[index];
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AnchorColors.cardWhite,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AnchorColors.borderSand),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AnchorColors.bgWarmCream,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(pwd['icon'] as IconData, color: AnchorColors.primaryNavy, size: 24),
+            child: filtered.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.key_off_outlined, size: 54, color: AnchorColors.textMuted),
+                        const SizedBox(height: 12),
+                        Text('No passwords saved yet', style: AnchorTypography.titleMedium),
+                        const SizedBox(height: 6),
+                        Text('Tap Add Password to save your first one', style: AnchorTypography.bodySmall),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final pwd = filtered[index];
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AnchorColors.cardWhite,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AnchorColors.borderSand),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(pwd['service'] as String, style: AnchorTypography.titleSmall),
-                            const SizedBox(height: 2),
-                            Text('${pwd['username']} • Shared: ${pwd['shared_with']}', style: AnchorTypography.bodySmall),
-                          ],
-                        ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AnchorColors.bgWarmCream,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(pwd['icon'] as IconData, color: AnchorColors.primaryNavy, size: 24),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(pwd['service'] as String, style: AnchorTypography.titleSmall),
+                                const SizedBox(height: 2),
+                                Text('${pwd['username']} • Shared: ${pwd['shared_with']}', style: AnchorTypography.bodySmall),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AnchorColors.statusMint.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              pwd['strength'] as String,
+                              style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.statusMint, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AnchorColors.statusMint.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          pwd['strength'] as String,
-                          style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.statusMint, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    );
+                  },
+                ),
           ),
         ],
       ),

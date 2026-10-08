@@ -15,10 +15,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   bool _shareFamilyOttPasswords = true;
   bool _sharePersonalBankAccounts = false;
 
-  final List<Map<String, String>> _emergencyContacts = [
-    {'name': 'Dr. Rajesh Shah', 'relation': 'Family Doctor', 'phone': '+91 98201 92810'},
-    {'name': 'Advocate Malhotra', 'relation': 'Legal Advisor', 'phone': '+91 98190 39201'},
-  ];
+  final List<Map<String, String>> _emergencyContacts = [];
 
   void _showAddContactDialog() {
     final nameCtrl = TextEditingController();
@@ -51,7 +48,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     _emergencyContacts.add({
                       'name': nameCtrl.text,
                       'relation': relCtrl.text.isNotEmpty ? relCtrl.text : 'Emergency Contact',
-                      'phone': phoneCtrl.text.isNotEmpty ? phoneCtrl.text : '+91 98000 00000',
+                      'phone': phoneCtrl.text.trim(),
                     });
                   });
                 }
@@ -117,6 +114,15 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             ),
             const SizedBox(height: 8),
 
+            if (_emergencyContacts.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  'No emergency contacts yet. Tap + to add someone you trust.',
+                  style: AnchorTypography.bodySmall,
+                ),
+              ),
+
             ..._emergencyContacts.map((c) {
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -138,7 +144,10 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(c['name']!, style: AnchorTypography.titleSmall),
-                          Text('${c['relation']!} • ${c['phone']!}', style: AnchorTypography.bodySmall),
+                          Text(
+                            c['phone']!.isEmpty ? c['relation']! : '${c['relation']!} • ${c['phone']!}',
+                            style: AnchorTypography.bodySmall,
+                          ),
                         ],
                       ),
                     ),

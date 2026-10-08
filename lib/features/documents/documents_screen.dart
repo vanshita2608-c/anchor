@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 
@@ -26,48 +27,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     'Household',
   ];
 
-  final List<Map<String, dynamic>> _documents = [
-    {
-      'title': 'Indian Passport (Vanshita Shah)',
-      'category': 'Identity',
-      'id_number': 'J82930192',
-      'expiry': '14 Feb 2027',
-      'expiring_soon': true,
-      'icon': Icons.badge_outlined,
-    },
-    {
-      'title': 'Aadhaar Card (Family)',
-      'category': 'Identity',
-      'id_number': 'XXXX-XXXX-9281',
-      'expiry': 'N/A',
-      'expiring_soon': false,
-      'icon': Icons.fingerprint,
-    },
-    {
-      'title': 'HDFC Health Insurance Policy',
-      'category': 'Financial & Legal',
-      'id_number': 'POL-9281920',
-      'expiry': '18 Oct 2026',
-      'expiring_soon': true,
-      'icon': Icons.medical_services_outlined,
-    },
-    {
-      'title': 'Property Deed (Bandra Flat)',
-      'category': 'Financial & Legal',
-      'id_number': 'REG-2021-99',
-      'expiry': 'N/A',
-      'expiring_soon': false,
-      'icon': Icons.home_work_outlined,
-    },
-    {
-      'title': 'Degree Certificate (B.Tech)',
-      'category': 'Education',
-      'id_number': 'DEG-92810',
-      'expiry': 'N/A',
-      'expiring_soon': false,
-      'icon': Icons.school_outlined,
-    },
-  ];
+  final List<Map<String, dynamic>> _documents = [];
 
   @override
   void initState() {
@@ -122,10 +82,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   }
 
   void _showOCRScanModal() {
-    final titleCtrl = TextEditingController(text: 'Scan Results: Car Insurance Policy');
-    final nameCtrl = TextEditingController(text: 'Vanshita Shah');
-    final idCtrl = TextEditingController(text: 'POL-3920192');
-    final expiryCtrl = TextEditingController(text: '12 March 2027');
+    final titleCtrl = TextEditingController();
+    final nameCtrl = TextEditingController(text: CurrentUser.displayName);
+    final idCtrl = TextEditingController();
+    final expiryCtrl = TextEditingController();
 
     showDialog(
       context: context,
@@ -183,16 +143,18 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                setState(() {
-                  _documents.insert(0, {
-                    'title': titleCtrl.text,
-                    'category': 'Financial & Legal',
-                    'id_number': idCtrl.text,
-                    'expiry': expiryCtrl.text,
-                    'expiring_soon': true,
-                    'icon': Icons.directions_car_outlined,
+                if (titleCtrl.text.trim().isNotEmpty) {
+                  setState(() {
+                    _documents.insert(0, {
+                      'title': titleCtrl.text.trim(),
+                      'category': _selectedCategory == 'All' ? 'Identity' : _selectedCategory,
+                      'id_number': idCtrl.text.isNotEmpty ? idCtrl.text : 'N/A',
+                      'expiry': expiryCtrl.text.isNotEmpty ? expiryCtrl.text : 'N/A',
+                      'expiring_soon': false,
+                      'icon': Icons.description_outlined,
+                    });
                   });
-                });
+                }
                 Navigator.pop(ctx);
               },
               child: Text('Save to Vault', style: AnchorTypography.buttonText),
@@ -251,7 +213,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                     _documents.insert(0, {
                       'title': titleCtrl.text,
                       'category': _selectedCategory == 'All' ? 'Identity' : _selectedCategory,
-                      'id_number': idCtrl.text.isNotEmpty ? idCtrl.text : 'REF-9201',
+                      'id_number': idCtrl.text.isNotEmpty ? idCtrl.text : 'N/A',
                       'expiry': expiryCtrl.text.isNotEmpty ? expiryCtrl.text : 'N/A',
                       'expiring_soon': false,
                       'icon': Icons.description_outlined,

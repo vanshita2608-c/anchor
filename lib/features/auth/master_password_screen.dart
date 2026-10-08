@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/security/biometric_service.dart';
 import '../../core/security/key_hierarchy_manager.dart';
+import '../../core/services/current_user.dart';
 import '../../core/services/google_auth_service.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
@@ -11,11 +11,11 @@ import '../onboarding/welcome_screen.dart';
 import 'auth_screen.dart';
 
 class MasterPasswordScreen extends StatefulWidget {
-  final String vaultName;
+  final String? vaultName;
 
   const MasterPasswordScreen({
     Key? key,
-    this.vaultName = 'Shah Family',
+    this.vaultName,
   }) : super(key: key);
 
   @override
@@ -120,10 +120,7 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
       if (!mounted) return;
 
       if (_isFirstTime) {
-        final currentUser = Supabase.instance.client.auth.currentUser;
-        final userName = currentUser?.userMetadata?['full_name'] ??
-            currentUser?.email?.split('@').first ??
-            'User';
+        final userName = CurrentUser.displayName;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => WelcomeScreen(userName: userName),
@@ -226,7 +223,7 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
                 const SizedBox(height: 8),
                 Text(
                   _isFirstTime
-                      ? 'Google Sign-In verifies your identity. Your Anchor Master Password protects the encrypted contents of your ${widget.vaultName} vault.'
+                      ? 'Google Sign-In verifies your identity. Your Anchor Master Password protects the encrypted contents of your ${widget.vaultName ?? CurrentUser.defaultVaultName} vault.'
                       : 'Enter your Master Password to decrypt your zero-knowledge family vault.',
                   textAlign: TextAlign.center,
                   style: AnchorTypography.bodyMedium.copyWith(color: AnchorColors.textSecondary),

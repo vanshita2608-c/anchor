@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/services/current_user.dart';
+import '../../core/services/google_auth_service.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 import '../auth/auth_screen.dart';
@@ -17,11 +18,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
-    final userName = user?.userMetadata?['full_name'] ?? 'Vanshita Shah';
-    final userEmail = user?.email ?? 'vanshitashah848@gmail.com';
-    final username = user?.userMetadata?['username'] ?? 'vanshita_shah';
-    final mobile = user?.userMetadata?['mobile'] ?? '+91 98201 92810';
+    final userName = CurrentUser.displayName;
+    final userEmail = CurrentUser.email;
+    final username = CurrentUser.username;
+    final mobile = CurrentUser.mobile;
+    final handleLine = [
+      if (username.isNotEmpty) '@$username',
+      if (mobile.isNotEmpty) mobile,
+    ].join(' • ');
 
     return Scaffold(
       backgroundColor: AnchorColors.bgWarmCream,
@@ -58,7 +62,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Text(userName, style: AnchorTypography.headlineMedium),
                         const SizedBox(height: 2),
                         Text(userEmail, style: AnchorTypography.bodySmall),
-                        Text('@$username • $mobile', style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.ceruleanTeal)),
+                        if (handleLine.isNotEmpty)
+                          Text(handleLine, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.ceruleanTeal)),
                       ],
                     ),
                   ),
@@ -159,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 52,
               child: OutlinedButton.icon(
                 onPressed: () async {
-                  await Supabase.instance.client.auth.signOut();
+                  await GoogleAuthService().signOut();
                   if (!mounted) return;
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const AuthScreen()),

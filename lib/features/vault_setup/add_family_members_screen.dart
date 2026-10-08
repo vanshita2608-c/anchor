@@ -5,11 +5,11 @@ import '../../core/theme/anchor_typography.dart';
 import '../../shared/widgets/anchor_nav_shell.dart';
 
 class AddFamilyMembersScreen extends StatefulWidget {
-  final String vaultName;
+  final String? vaultName;
 
   const AddFamilyMembersScreen({
     super.key,
-    this.vaultName = 'Shah Family',
+    this.vaultName,
   });
 
   @override
@@ -30,8 +30,8 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
   @override
   void initState() {
     super.initState();
-    FamilyService().setVaultName(widget.vaultName);
     FamilyService().initializeOwner();
+    if (widget.vaultName != null) FamilyService().setVaultName(widget.vaultName!);
     _members.addAll(FamilyService().members);
   }
 
@@ -147,7 +147,7 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
               Text('Build Your Family Vault', style: AnchorTypography.displayMedium),
               const SizedBox(height: 6),
               Text(
-                'Add trusted family members to ${widget.vaultName}. You can control role permissions for each member.',
+                'Add trusted family members to ${widget.vaultName ?? FamilyService().vaultName}. You can control role permissions for each member.',
                 style: AnchorTypography.bodyMedium.copyWith(color: AnchorColors.textSecondary),
               ),
               const SizedBox(height: 24),

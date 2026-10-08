@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/services/current_user.dart';
 import '../../core/services/google_auth_service.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
@@ -138,6 +139,17 @@ class _AuthScreenState extends State<AuthScreen> {
           },
         );
 
+        // Supabase returns no session when email confirmation is required.
+        if (res.session == null) {
+          if (mounted) {
+            setState(() {
+              _isSignUp = false;
+              _errorMessage = 'Account created. Check your email to confirm it, then sign in.';
+            });
+          }
+          return;
+        }
+
         final userId = res.user?.id ?? _supabase.auth.currentUser?.id;
         if (userId != null) {
           await _syncProfileToDatabase(
@@ -167,10 +179,10 @@ class _AuthScreenState extends State<AuthScreen> {
         _proceedToMasterPasswordScreen(name: userName);
       }
     } on AuthException catch (e) {
-      _errorMessage = e.message;
-      _proceedToMasterPasswordScreen(name: name.isNotEmpty ? name : 'User');
-    } catch (_) {
-      _proceedToMasterPasswordScreen(name: name.isNotEmpty ? name : 'User');
+      if (mounted) setState(() => _errorMessage = e.message);
+    } catch (e) {
+      debugPrint('Email auth notice: $e');
+      if (mounted) setState(() => _errorMessage = 'Something went wrong. Check your connection and try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -196,15 +208,16 @@ class _AuthScreenState extends State<AuthScreen> {
 
       final googleUser = result.googleUser;
       final sessionUser = _supabase.auth.currentUser;
-      final userName = googleUser?.displayName ??
-          sessionUser?.userMetadata?['full_name'] ??
-          'Vanshita Shah';
-      final email = googleUser?.email ?? sessionUser?.email ?? '';
-      final userId = sessionUser?.id ?? googleUser?.id ?? '';
+      if (sessionUser == null) {
+        setState(() => _errorMessage = 'Google Sign-In did not create a session. Please try again.');
+        return;
+      }
+      final userName = googleUser?.displayName ?? CurrentUser.displayName;
+      final email = sessionUser.email ?? googleUser?.email ?? '';
 
-      if (userId.isNotEmpty && email.isNotEmpty) {
+      if (email.isNotEmpty) {
         await _syncProfileToDatabase(
-          userId: userId,
+          userId: sessionUser.id,
           email: email,
           fullName: userName,
           avatarIndex: 0,
@@ -347,7 +360,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     controller: _usernameController,
                     style: AnchorTypography.bodyLarge,
                     decoration: const InputDecoration(
-                      labelText: 'Username (e.g. vanshita_shah)',
+                      labelText: 'Username (e.g. john_doe)',
                       prefixIcon: Icon(Icons.alternate_email, color: AnchorColors.primaryNavy),
                     ),
                   ),

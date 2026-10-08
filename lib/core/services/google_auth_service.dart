@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_config.dart';
+import '../security/key_hierarchy_manager.dart';
+import 'family_service.dart';
 
 /// Result object returned by [GoogleAuthService.signInWithGoogle].
 class GoogleAuthResult {
@@ -131,7 +133,7 @@ class GoogleAuthService {
     }
   }
 
-  /// Signs out of Google Sign-In and clears Supabase Session.
+  /// Signs out of Google Sign-In, clears the Supabase session and wipes in-memory vault state.
   Future<void> signOut() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn.instance;
@@ -140,5 +142,7 @@ class GoogleAuthService {
       debugPrint('Google Sign-Out notice: $e');
     }
     await _supabase.auth.signOut();
+    KeyHierarchyManager().lockVault();
+    FamilyService().reset();
   }
 }
