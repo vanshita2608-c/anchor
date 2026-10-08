@@ -1,14 +1,25 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+/// App configuration loaded from the `.env` file at startup (see main.dart).
+/// Copy `.env.example` to `.env` and fill in the values.
 class AppConfig {
   AppConfig._();
 
-  static const String supabaseUrl = 'https://jedgravowhaiqmpoqpox.supabase.co';
-  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGdyYXZvd2hhaXFtcG9xcG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NzQ4MDgsImV4cCI6MjEwNDQ1MDgwOH0.uo9wsLCo_jX5wbecDge5LCwvjEDh8ZVeaqaE8mRYKMA';
+  static String _require(String key) {
+    final value = dotenv.maybeGet(key)?.trim();
+    if (value == null || value.isEmpty) {
+      throw StateError('Missing $key in .env. Copy .env.example to .env and fill it in.');
+    }
+    return value;
+  }
+
+  static String get supabaseUrl => _require('SUPABASE_URL');
+  static String get supabaseAnonKey => _require('SUPABASE_ANON_KEY');
 
   static const String appName = 'Anchor';
   static const String appTagline = 'Your Family. Secured.';
 
-  // Google OAuth Credentials
-  static const String googleServerClientId = '6673167196-gkd8vppi7cg4npvnlf4d5137ld1ttde6.apps.googleusercontent.com';
-  static const String googleIosClientId = '6673167196-c7cq5go0mir0gumhg2v2api24ai900j1.apps.googleusercontent.com';
+  // Google OAuth Credentials (optional; Google Sign-In falls back to platform config when empty)
+  static String get googleServerClientId => dotenv.maybeGet('GOOGLE_SERVER_CLIENT_ID')?.trim() ?? '';
+  static String get googleIosClientId => dotenv.maybeGet('GOOGLE_IOS_CLIENT_ID')?.trim() ?? '';
 }
-

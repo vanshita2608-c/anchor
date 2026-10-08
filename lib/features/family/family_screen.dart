@@ -18,6 +18,9 @@ class _FamilyScreenState extends State<FamilyScreen> {
   void initState() {
     super.initState();
     _familyService.initializeOwner();
+    _familyService.load().catchError((Object e) {
+      debugPrint('Family load notice: $e');
+    });
   }
 
   @override
@@ -39,7 +42,7 @@ class _FamilyScreenState extends State<FamilyScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => AddFamilyMembersScreen(vaultName: vaultName)),
+                    MaterialPageRoute(builder: (_) => const AddFamilyMembersScreen()),
                   );
                 },
               ),

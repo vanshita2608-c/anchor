@@ -1,36 +1,39 @@
+/// A vault document as shown in the app. Sensitive fields (holder name,
+/// ID number) are stored encrypted in `document_metadata.encrypted_metadata_blob`.
 class DocumentItem {
   final String id;
   final String title;
   final String category;
-  final String ownerName;
-  final DateTime? issueDate;
+  final String holderName;
+  final String idNumber;
   final DateTime? expiryDate;
-  final int fileSizeKB;
-  final List<String> tags;
-  final bool isEncrypted;
   final DateTime createdAt;
 
-  DocumentItem({
+  const DocumentItem({
     required this.id,
     required this.title,
     required this.category,
-    required this.ownerName,
-    this.issueDate,
+    required this.holderName,
+    required this.idNumber,
     this.expiryDate,
-    required this.fileSizeKB,
-    required this.tags,
-    this.isEncrypted = true,
     required this.createdAt,
   });
 
+  int? get daysUntilExpiry {
+    if (expiryDate == null) return null;
+    final today = DateTime.now();
+    return DateTime(expiryDate!.year, expiryDate!.month, expiryDate!.day)
+        .difference(DateTime(today.year, today.month, today.day))
+        .inDays;
+  }
+
   bool get isExpiringSoon {
-    if (expiryDate == null) return false;
-    final diff = expiryDate!.difference(DateTime.now()).inDays;
-    return diff >= 0 && diff <= 30;
+    final days = daysUntilExpiry;
+    return days != null && days >= 0 && days <= 30;
   }
 
   bool get isExpired {
-    if (expiryDate == null) return false;
-    return expiryDate!.isBefore(DateTime.now());
+    final days = daysUntilExpiry;
+    return days != null && days < 0;
   }
 }

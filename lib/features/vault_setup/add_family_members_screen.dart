@@ -17,7 +17,8 @@ class AddFamilyMembersScreen extends StatefulWidget {
 }
 
 class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
-  final List<Map<String, String>> _members = [];
+  final FamilyService _familyService = FamilyService();
+  bool _isSaving = false;
 
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -30,38 +31,50 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
   @override
   void initState() {
     super.initState();
-    FamilyService().initializeOwner();
-    if (widget.vaultName != null) FamilyService().setVaultName(widget.vaultName!);
-    _members.addAll(FamilyService().members);
+    _familyService.initializeOwner();
+    _syncWithCloud();
   }
 
-  void _addMember() {
+  Future<void> _syncWithCloud() async {
+    try {
+      if (widget.vaultName != null) await _familyService.saveVaultName(widget.vaultName!);
+      await _familyService.load();
+    } catch (e) {
+      debugPrint('Family sync notice: $e');
+      _showError("Couldn't sync your family vault. Check your connection.");
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AnchorColors.alertCoral),
+    );
+  }
+
+  Future<void> _addMember(BuildContext sheetContext) async {
     final name = _nameCtrl.text.trim();
     final email = _emailCtrl.text.trim();
 
-    if (name.isEmpty || email.isEmpty) return;
+    if (name.isEmpty || email.isEmpty || _isSaving) return;
 
-    final newMember = {
-      'name': name,
-      'email': email,
-      'relation': _selectedRelation,
-      'role': _selectedRole,
-    };
-
-    setState(() {
-      _members.add(newMember);
+    setState(() => _isSaving = true);
+    try {
+      await _familyService.addMember(
+        name: name,
+        email: email,
+        relation: _selectedRelation,
+        role: _selectedRole,
+      );
       _nameCtrl.clear();
       _emailCtrl.clear();
-    });
-
-    FamilyService().addMember(
-      name: name,
-      email: email,
-      relation: _selectedRelation,
-      role: _selectedRole,
-    );
-
-    Navigator.pop(context);
+      if (sheetContext.mounted) Navigator.pop(sheetContext);
+    } catch (e) {
+      debugPrint('Add family member notice: $e');
+      _showError("Couldn't save this member. Please try again.");
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   void _showAddDialog() {
@@ -118,9 +131,7 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        _addMember();
-                      },
+                      onPressed: () => _addMember(ctx),
                       child: Text('Add to Vault', style: AnchorTypography.buttonText),
                     ),
                   ),
@@ -147,17 +158,21 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
               Text('Build Your Family Vault', style: AnchorTypography.displayMedium),
               const SizedBox(height: 6),
               Text(
-                'Add trusted family members to ${widget.vaultName ?? FamilyService().vaultName}. You can control role permissions for each member.',
+                'Add trusted family members to ${widget.vaultName ?? _familyService.vaultName}. You can control role permissions for each member.',
                 style: AnchorTypography.bodyMedium.copyWith(color: AnchorColors.textSecondary),
               ),
               const SizedBox(height: 24),
 
               Expanded(
-                child: ListView.separated(
-                  itemCount: _members.length,
+                child: ListenableBuilder(
+                  listenable: _familyService,
+                  builder: (context, _) {
+                  final members = _familyService.members;
+                  return ListView.separated(
+                  itemCount: members.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
-                    final member = _members[index];
+                    final member = members[index];
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -170,7 +185,7 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
                           CircleAvatar(
                             backgroundColor: AnchorColors.primaryNavy,
                             child: Text(
-                              member['name']![0].toUpperCase(),
+                              member['name']!.isNotEmpty ? member['name']![0].toUpperCase() : 'U',
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -199,6 +214,8 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
                       ),
                     );
                   },
+                  );
+                  },
                 ),
               ),
 
@@ -214,7 +231,6 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () {
-                    FamilyService().setMembers(_members);
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (_) => const AnchorNavShell()),
                       (route) => false,

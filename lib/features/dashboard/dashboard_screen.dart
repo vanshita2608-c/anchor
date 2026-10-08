@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/services/current_user.dart';
+import '../../core/models/audit_entry.dart';
+import '../../core/models/document_item.dart';
 import '../../core/services/family_service.dart';
+import '../../core/services/vault_repository.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 import '../documents/documents_screen.dart';
@@ -17,11 +20,74 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final FamilyService _familyService = FamilyService();
+  final VaultRepository _repo = VaultRepository();
+
+  List<DocumentItem> _documents = [];
+  int _passwordCount = 0;
+  List<AuditEntry> _activity = [];
+  bool _statsLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _familyService.initializeOwner();
+    _familyService.load().catchError((Object e) {
+      debugPrint('Family load notice: $e');
+    });
+    _repo.addListener(_loadStats);
+    _loadStats();
+  }
+
+  @override
+  void dispose() {
+    _repo.removeListener(_loadStats);
+    super.dispose();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final docs = await _repo.fetchDocuments();
+      final passwords = await _repo.countPasswords();
+      final activity = await _repo.fetchRecentActivity();
+      if (!mounted) return;
+      setState(() {
+        _documents = docs;
+        _passwordCount = passwords;
+        _activity = activity;
+        _statsLoaded = true;
+      });
+    } catch (e) {
+      debugPrint('Dashboard stats notice: $e');
+    }
+  }
+
+  List<DocumentItem> get _expiring {
+    final list = _documents.where((d) => d.isExpiringSoon || d.isExpired).toList()
+      ..sort((a, b) => a.expiryDate!.compareTo(b.expiryDate!));
+    return list;
+  }
+
+  static String _expiryText(DocumentItem doc) {
+    final days = doc.daysUntilExpiry!;
+    if (days < 0) return 'Expired ${-days} day${days == -1 ? '' : 's'} ago';
+    if (days == 0) return 'Expires today';
+    return 'Expires in $days day${days == 1 ? '' : 's'}';
+  }
+
+  static const Map<String, String> _activityLabels = {
+    'DOCUMENT_ADDED': 'Document Added',
+    'PASSWORD_ADDED': 'Password Saved',
+    'EMERGENCY_CONTACT_ADDED': 'Emergency Contact Added',
+    'FAMILY_MEMBER_INVITED': 'Family Member Invited',
+  };
+
+  static String _timeAgo(DateTime time) {
+    final diff = DateTime.now().difference(time.toLocal());
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes} min ago';
+    if (diff.inDays < 1) return '${diff.inHours} h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    return '${diff.inDays} days ago';
   }
 
   String get _greeting {
@@ -141,14 +207,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         const Icon(Icons.warning_amber_rounded, color: AnchorColors.alertCoral, size: 20),
                         const SizedBox(width: 8),
-                        Text('Expiring Soon', style: AnchorTypography.titleMedium.copyWith(color: AnchorColors.alertCoral)),
+                        Text(
+                          _expiring.isEmpty ? 'Expiring Soon' : 'Expiring Soon (${_expiring.length})',
+                          style: AnchorTypography.titleMedium.copyWith(color: AnchorColors.alertCoral),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      'Nothing is expiring soon. Add documents with expiry dates and Anchor will remind you here.',
-                      style: AnchorTypography.bodySmall,
-                    ),
+                    if (_expiring.isEmpty)
+                      Text(
+                        'Nothing is expiring soon. Add documents with expiry dates and Anchor will remind you here.',
+                        style: AnchorTypography.bodySmall,
+                      )
+                    else
+                      for (final (index, doc) in _expiring.take(3).indexed) ...[
+                        if (index > 0) const Divider(color: AnchorColors.borderSand, height: 16),
+                        _buildExpiryTile(doc.title, _expiryText(doc), Icons.event_busy_outlined),
+                      ],
                   ],
                 ),
               ),
@@ -160,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Expanded(
                     child: _buildMetricCard(
                       title: 'Documents',
-                      count: 'Open',
+                      count: _statsLoaded ? '${_documents.length} Item${_documents.length == 1 ? '' : 's'}' : '…',
                       icon: Icons.folder_special_outlined,
                       subtitle: 'Identity, Legal, Medical',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DocumentsScreen())),
@@ -170,7 +245,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Expanded(
                     child: _buildMetricCard(
                       title: 'Passwords',
-                      count: 'Open',
+                      count: _statsLoaded ? '$_passwordCount Saved' : '…',
                       icon: Icons.key_outlined,
                       subtitle: 'OTT, Wi-Fi, Utilities',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PasswordsScreen())),
@@ -213,7 +288,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AnchorColors.borderSand),
                 ),
-                child: _buildActivityTile('No activity yet', 'Items you add or share will show up here', Icons.history),
+                child: _activity.isEmpty
+                    ? _buildActivityTile('No activity yet', 'Items you add or share will show up here', Icons.history)
+                    : Column(
+                        children: [
+                          for (final (index, entry) in _activity.indexed) ...[
+                            if (index > 0) const Divider(color: AnchorColors.borderSand, height: 1),
+                            _buildActivityTile(
+                              _activityLabels[entry.action] ?? entry.action,
+                              '${CurrentUser.displayName} • ${_timeAgo(entry.createdAt)}',
+                              Icons.history,
+                            ),
+                          ],
+                        ],
+                      ),
               ),
               const SizedBox(height: 24),
             ],
@@ -250,6 +338,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(label, style: AnchorTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
+    );
+  }
+
+  Widget _buildExpiryTile(String title, String subtitle, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AnchorColors.primaryNavy),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AnchorTypography.titleSmall),
+              Text(subtitle, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.alertCoral, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

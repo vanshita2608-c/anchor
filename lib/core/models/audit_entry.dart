@@ -1,11 +1,11 @@
 class AuditEntry {
   final String id;
   final String action;
-  final String timestamp;
+  final DateTime createdAt;
 
   const AuditEntry({
     required this.id,
     required this.action,
-    required this.timestamp,
+    required this.createdAt,
   });
 }

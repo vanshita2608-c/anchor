@@ -1,5 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../core/models/password_item.dart';
+import '../../core/services/vault_repository.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 
@@ -11,6 +14,7 @@ class PasswordsScreen extends StatefulWidget {
 }
 
 class _PasswordsScreenState extends State<PasswordsScreen> {
+  final VaultRepository _repo = VaultRepository();
   String _selectedCategory = 'All';
 
   final List<String> _categories = [
@@ -21,7 +25,64 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
     'Accounts',
   ];
 
-  final List<Map<String, dynamic>> _passwords = [];
+  List<PasswordItem> _passwords = [];
+  bool _isLoading = true;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPasswords();
+  }
+
+  Future<void> _loadPasswords() async {
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+    try {
+      final items = await _repo.fetchPasswords();
+      if (mounted) setState(() => _passwords = items);
+    } catch (e) {
+      debugPrint('Load passwords notice: $e');
+      if (mounted) setState(() => _loadError = "Couldn't load your passwords.");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showSnack(String message, {bool error = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: error ? AnchorColors.alertCoral : AnchorColors.primaryNavy),
+    );
+  }
+
+  Future<void> _copyPassword(PasswordItem item) async {
+    try {
+      final plain = await _repo.revealPassword(item);
+      await Clipboard.setData(ClipboardData(text: plain));
+      _showSnack('Password for ${item.websiteTitle} copied');
+    } catch (e) {
+      debugPrint('Reveal password notice: $e');
+      _showSnack("Couldn't decrypt this password.", error: true);
+    }
+  }
+
+  IconData _iconFor(String category) {
+    switch (category) {
+      case 'OTT & Entertainment':
+        return Icons.tv_outlined;
+      case 'Shopping':
+        return Icons.shopping_bag_outlined;
+      case 'Utilities':
+        return Icons.wifi;
+      case 'Accounts':
+        return Icons.account_circle_outlined;
+      default:
+        return Icons.lock_outline;
+    }
+  }
 
   void _showAddPasswordSheet() {
     final serviceCtrl = TextEditingController();
@@ -29,6 +90,8 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
     final pwdCtrl = TextEditingController();
     String category = 'OTT & Entertainment';
     String accessPermission = 'Entire Vault';
+    bool saving = false;
+    String? formError;
 
     showModalBottomSheet(
       context: context,
@@ -101,28 +164,47 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
                       items: ['Only Me', 'Selected Members', 'Entire Vault'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
                       onChanged: (val) => setModalState(() => accessPermission = val!),
                     ),
+                    if (formError != null) ...[
+                      const SizedBox(height: 12),
+                      Text(formError!, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.alertCoral)),
+                    ],
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (serviceCtrl.text.isNotEmpty && pwdCtrl.text.isNotEmpty) {
-                            setState(() {
-                              _passwords.insert(0, {
-                                'service': serviceCtrl.text,
-                                'category': category,
-                                'username': userCtrl.text.isNotEmpty ? userCtrl.text : 'user@example.com',
-                                'password': '••••••••••••',
-                                'strength': 'Strong',
-                                'shared_with': accessPermission,
-                                'icon': Icons.lock_outline,
-                              });
-                            });
-                          }
-                          Navigator.pop(ctx);
-                        },
-                        child: Text('Save Password to Vault', style: AnchorTypography.buttonText),
+                        onPressed: saving
+                            ? null
+                            : () async {
+                                if (serviceCtrl.text.trim().isEmpty || pwdCtrl.text.isEmpty) {
+                                  setModalState(() => formError = 'Please enter a service name and password.');
+                                  return;
+                                }
+                                setModalState(() {
+                                  saving = true;
+                                  formError = null;
+                                });
+                                try {
+                                  await _repo.addPassword(
+                                    websiteTitle: serviceCtrl.text.trim(),
+                                    username: userCtrl.text.trim(),
+                                    password: pwdCtrl.text,
+                                    category: category,
+                                    accessLevel: accessPermission,
+                                  );
+                                  if (ctx.mounted) Navigator.pop(ctx);
+                                  await _loadPasswords();
+                                } catch (e) {
+                                  debugPrint('Save password notice: $e');
+                                  setModalState(() {
+                                    saving = false;
+                                    formError = "Couldn't save the password. Please try again.";
+                                  });
+                                }
+                              },
+                        child: saving
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : Text('Save Password to Vault', style: AnchorTypography.buttonText),
                       ),
                     ),
                   ],
@@ -145,7 +227,7 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
   Widget build(BuildContext context) {
     final filtered = _selectedCategory == 'All'
         ? _passwords
-        : _passwords.where((p) => p['category'] == _selectedCategory).toList();
+        : _passwords.where((p) => p.category == _selectedCategory).toList();
 
     return Scaffold(
       backgroundColor: AnchorColors.bgWarmCream,
@@ -187,7 +269,22 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
 
           // Passwords List
           Expanded(
-            child: filtered.isEmpty
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: AnchorColors.primaryNavy))
+                : _loadError != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.cloud_off_outlined, size: 54, color: AnchorColors.textMuted),
+                        const SizedBox(height: 12),
+                        Text(_loadError!, style: AnchorTypography.titleMedium),
+                        const SizedBox(height: 12),
+                        ElevatedButton(onPressed: _loadPasswords, child: Text('Retry', style: AnchorTypography.buttonText)),
+                      ],
+                    ),
+                  )
+                : filtered.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -221,16 +318,19 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
                               color: AnchorColors.bgWarmCream,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(pwd['icon'] as IconData, color: AnchorColors.primaryNavy, size: 24),
+                            child: Icon(_iconFor(pwd.category), color: AnchorColors.primaryNavy, size: 24),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(pwd['service'] as String, style: AnchorTypography.titleSmall),
+                                Text(pwd.websiteTitle, style: AnchorTypography.titleSmall),
                                 const SizedBox(height: 2),
-                                Text('${pwd['username']} • Shared: ${pwd['shared_with']}', style: AnchorTypography.bodySmall),
+                                Text(
+                                  [if (pwd.username.isNotEmpty) pwd.username, 'Shared: ${pwd.accessLevel}'].join(' • '),
+                                  style: AnchorTypography.bodySmall,
+                                ),
                               ],
                             ),
                           ),
@@ -241,9 +341,14 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              pwd['strength'] as String,
+                              pwd.strengthLabel,
                               style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.statusMint, fontWeight: FontWeight.bold),
                             ),
+                          ),
+                          IconButton(
+                            tooltip: 'Copy password',
+                            icon: const Icon(Icons.copy_outlined, size: 20, color: AnchorColors.primaryNavy),
+                            onPressed: () => _copyPassword(pwd),
                           ),
                         ],
                       ),

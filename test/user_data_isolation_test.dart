@@ -1,3 +1,5 @@
+import 'package:anchor/core/security/key_hierarchy_manager.dart';
+import 'package:anchor/core/services/vault_repository.dart';
 import 'package:anchor/features/auth/auth_screen.dart';
 import 'package:anchor/features/auth/master_password_screen.dart';
 import 'package:anchor/features/dashboard/dashboard_screen.dart';
@@ -124,5 +126,32 @@ void main() {
 
     expect(find.byType(AuthScreen), findsOneWidget);
     expect(find.byType(MasterPasswordScreen), findsNothing);
+  });
+
+  test('(setup) create a vault and save a document expiring in 10 days', () async {
+    await KeyHierarchyManager().setupNewVault('atharva-master-123');
+    await VaultRepository().addDocument(
+      title: 'Car Insurance',
+      category: 'Financial & Legal',
+      idNumber: 'POL-777',
+      expiryDate: DateTime.now().add(const Duration(days: 10)),
+    );
+  });
+
+  testWidgets('saved documents appear on the dashboard and in the vault', (tester) async {
+    await _pump(tester, const DashboardScreen());
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    await tester.pump();
+    expect(find.text('1 Item'), findsOneWidget);
+    expect(find.text('Expiring Soon (1)'), findsOneWidget);
+    expect(find.text('Car Insurance'), findsOneWidget);
+    expect(find.text('Document Added'), findsOneWidget);
+
+    await _pump(tester, const DocumentsScreen());
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    await tester.pump();
+    expect(find.text('Car Insurance'), findsOneWidget);
+    expect(find.textContaining('POL-777'), findsOneWidget);
+    expect(find.text('Alert'), findsOneWidget);
   });
 }

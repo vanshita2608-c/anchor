@@ -28,6 +28,7 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
 
   bool _isFirstTime = true;
   bool _isLoading = true;
+  bool _loadFailed = false;
   String? _errorMessage;
 
   @override
@@ -37,7 +38,19 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
   }
 
   void _checkVaultState() async {
-    final exists = await KeyHierarchyManager().hasExistingVault();
+    final bool exists;
+    try {
+      exists = await KeyHierarchyManager().hasExistingVault();
+    } catch (e) {
+      debugPrint('Vault state check notice: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadFailed = true;
+        });
+      }
+      return;
+    }
     if (mounted) {
       setState(() {
         _isFirstTime = !exists;
@@ -133,6 +146,14 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
           ),
         );
       }
+    } on VaultAlreadyExistsException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isFirstTime = false;
+          _errorMessage = 'This account already has a vault. Enter your existing Master Password to unlock it.';
+        });
+      }
     } catch (e) {
       debugPrint('Master Password error: $e');
       if (mounted) {
@@ -200,6 +221,44 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
         backgroundColor: AnchorColors.bgWarmCream,
         body: Center(
           child: CircularProgressIndicator(color: AnchorColors.primaryNavy),
+        ),
+      );
+    }
+
+    if (_loadFailed) {
+      return Scaffold(
+        backgroundColor: AnchorColors.bgWarmCream,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cloud_off_outlined, size: 54, color: AnchorColors.textMuted),
+                  const SizedBox(height: 12),
+                  Text("Couldn't reach Anchor servers", style: AnchorTypography.titleMedium),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Check your internet connection and try again.',
+                    textAlign: TextAlign.center,
+                    style: AnchorTypography.bodySmall,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _loadFailed = false;
+                        _isLoading = true;
+                      });
+                      _checkVaultState();
+                    },
+                    child: Text('Retry', style: AnchorTypography.buttonText),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     }

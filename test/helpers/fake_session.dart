@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:anchor/core/config/app_config.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'fake_supabase_server.dart';
 
 class FakeUser {
   final String id;
@@ -78,13 +80,16 @@ class _FakeAsyncStorage extends GotrueAsyncStorage {
   Future<void> removeItem({required String key}) async => _items.remove(key);
 }
 
-/// Initializes Supabase offline with [user] already signed in, and an
-/// in-memory secure storage seeded with [secureStorage].
-Future<void> initSupabaseAs(FakeUser user, {Map<String, String> secureStorage = const {}}) async {
+/// Initializes Supabase against an in-memory [FakeSupabaseServer] with [user]
+/// already signed in, and an in-memory secure storage seeded with [secureStorage].
+Future<FakeSupabaseServer> initSupabaseAs(FakeUser user, {Map<String, String> secureStorage = const {}}) async {
+  dotenv.loadFromString(envString: 'SUPABASE_URL=https://test-project.supabase.co\nSUPABASE_ANON_KEY=test-anon-key');
   FlutterSecureStorage.setMockInitialValues(Map.of(secureStorage));
+  final server = FakeSupabaseServer();
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
     anonKey: AppConfig.supabaseAnonKey,
+    httpClient: server.client,
     authOptions: FlutterAuthClientOptions(
       localStorage: _FakeLocalStorage(sessionJsonFor(user)),
       pkceAsyncStorage: _FakeAsyncStorage(),
@@ -92,6 +97,7 @@ Future<void> initSupabaseAs(FakeUser user, {Map<String, String> secureStorage = 
       detectSessionInUri: false,
     ),
   );
+  return server;
 }
 
 /// Switches the signed-in user without any network call.

@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'current_user.dart';
+import 'vault_repository.dart';
 
+/// In-memory view of the signed-in user's family vault, backed by Supabase
+/// (`families` + `family_invitations`) through [VaultRepository].
 class FamilyService extends ChangeNotifier {
   static final FamilyService _instance = FamilyService._internal();
   factory FamilyService() => _instance;
@@ -41,19 +44,37 @@ class FamilyService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setVaultName(String name) {
-    if (name.trim().isNotEmpty) {
-      _vaultName = name.trim().contains('Vault') ? name.trim() : '${name.trim()} Vault';
-      notifyListeners();
-    }
+  /// Loads the saved vault name and added members from Supabase.
+  Future<void> load() async {
+    final repo = VaultRepository();
+    final name = await repo.fetchFamilyName();
+    final invitations = await repo.fetchFamilyInvitations();
+
+    initializeOwner();
+    _vaultName = name ?? _vaultName;
+    _members
+      ..removeRange(1, _members.length)
+      ..addAll(invitations);
+    notifyListeners();
   }
 
-  void addMember({
+  /// Saves the vault name to Supabase.
+  Future<void> saveVaultName(String name) async {
+    if (name.trim().isEmpty) return;
+    final fullName = name.trim().contains('Vault') ? name.trim() : '${name.trim()} Vault';
+    await VaultRepository().saveFamilyName(fullName);
+    _vaultName = fullName;
+    notifyListeners();
+  }
+
+  /// Saves a new family member (as an invitation) to Supabase.
+  Future<void> addMember({
     required String name,
     required String email,
     required String relation,
     required String role,
-  }) {
+  }) async {
+    await VaultRepository().addFamilyInvitation(name: name, email: email, relation: relation, role: role);
     if (_members.isEmpty) {
       initializeOwner();
     }
@@ -71,11 +92,5 @@ class FamilyService extends ChangeNotifier {
     _vaultName = null;
     _members.clear();
     if (notify) notifyListeners();
-  }
-
-  void setMembers(List<Map<String, String>> membersList) {
-    _members.clear();
-    _members.addAll(membersList);
-    notifyListeners();
   }
 }

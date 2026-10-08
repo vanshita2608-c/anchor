@@ -48,8 +48,8 @@ class GoogleAuthService {
   /// Performs Google Sign-In with cryptographic nonce verification for Supabase.
   Future<GoogleAuthResult> signInWithGoogle() async {
     try {
-      const webClientId = AppConfig.googleServerClientId;
-      const iosClientId = AppConfig.googleIosClientId;
+      final webClientId = AppConfig.googleServerClientId;
+      final iosClientId = AppConfig.googleIosClientId;
 
       // Step 1: Generate cryptographic raw nonce & SHA-256 hashed nonce
       final rawNonce = _generateNonce();

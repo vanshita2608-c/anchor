@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/models/emergency_contact.dart';
+import '../../core/services/vault_repository.dart';
 import '../../core/theme/anchor_colors.dart';
 import '../../core/theme/anchor_typography.dart';
 
@@ -15,17 +17,45 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   bool _shareFamilyOttPasswords = true;
   bool _sharePersonalBankAccounts = false;
 
-  final List<Map<String, String>> _emergencyContacts = [];
+  final VaultRepository _repo = VaultRepository();
+  List<EmergencyContact> _emergencyContacts = [];
+  bool _isLoading = true;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContacts();
+  }
+
+  Future<void> _loadContacts() async {
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+    try {
+      final contacts = await _repo.fetchEmergencyContacts();
+      if (mounted) setState(() => _emergencyContacts = contacts);
+    } catch (e) {
+      debugPrint('Load emergency contacts notice: $e');
+      if (mounted) setState(() => _loadError = "Couldn't load your emergency contacts.");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   void _showAddContactDialog() {
     final nameCtrl = TextEditingController();
     final relCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
+    bool saving = false;
+    String? formError;
 
     showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: AnchorColors.cardWhite,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text('Add Emergency Contact', style: AnchorTypography.headlineMedium),
@@ -37,26 +67,48 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
               TextField(controller: relCtrl, style: AnchorTypography.bodyLarge, decoration: const InputDecoration(labelText: 'Relationship / Role')),
               const SizedBox(height: 12),
               TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, style: AnchorTypography.bodyLarge, decoration: const InputDecoration(labelText: 'Phone Number')),
+              if (formError != null) ...[
+                const SizedBox(height: 12),
+                Text(formError!, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.alertCoral)),
+              ],
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: AnchorTypography.bodyMedium)),
+            TextButton(onPressed: saving ? null : () => Navigator.pop(ctx), child: Text('Cancel', style: AnchorTypography.bodyMedium)),
             ElevatedButton(
-              onPressed: () {
-                if (nameCtrl.text.isNotEmpty) {
-                  setState(() {
-                    _emergencyContacts.add({
-                      'name': nameCtrl.text,
-                      'relation': relCtrl.text.isNotEmpty ? relCtrl.text : 'Emergency Contact',
-                      'phone': phoneCtrl.text.trim(),
-                    });
-                  });
-                }
-                Navigator.pop(ctx);
-              },
-              child: Text('Save Contact', style: AnchorTypography.buttonText),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      if (nameCtrl.text.trim().isEmpty) {
+                        setDialogState(() => formError = 'Please enter a name.');
+                        return;
+                      }
+                      setDialogState(() {
+                        saving = true;
+                        formError = null;
+                      });
+                      try {
+                        await _repo.addEmergencyContact(
+                          name: nameCtrl.text.trim(),
+                          relationship: relCtrl.text.trim().isNotEmpty ? relCtrl.text.trim() : 'Emergency Contact',
+                          phone: phoneCtrl.text.trim(),
+                        );
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        await _loadContacts();
+                      } catch (e) {
+                        debugPrint('Save emergency contact notice: $e');
+                        setDialogState(() {
+                          saving = false;
+                          formError = "Couldn't save the contact. Please try again.";
+                        });
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Text('Save Contact', style: AnchorTypography.buttonText),
             ),
           ],
+          ),
         );
       },
     );
@@ -114,7 +166,22 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             ),
             const SizedBox(height: 8),
 
-            if (_emergencyContacts.isEmpty)
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator(color: AnchorColors.primaryNavy)),
+              )
+            else if (_loadError != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(_loadError!, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.alertCoral))),
+                    TextButton(onPressed: _loadContacts, child: Text('Retry', style: AnchorTypography.bodyMedium)),
+                  ],
+                ),
+              )
+            else if (_emergencyContacts.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
@@ -143,9 +210,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(c['name']!, style: AnchorTypography.titleSmall),
+                          Text(c.name, style: AnchorTypography.titleSmall),
                           Text(
-                            c['phone']!.isEmpty ? c['relation']! : '${c['relation']!} • ${c['phone']!}',
+                            c.phone.isEmpty ? c.relationship : '${c.relationship} • ${c.phone}',
                             style: AnchorTypography.bodySmall,
                           ),
                         ],
