@@ -79,7 +79,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ] else if (_interpretedFilter != null) ...[
               Card(
-                color: AnchorColors.cardWhite,
+                color: AnchorColors.cardCreamElevated,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -97,7 +97,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AnchorColors.bgWarmCream,
+                          color: AnchorColors.creamBox,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(_interpretedFilter!, style: AnchorTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
@@ -130,7 +130,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildChip(String text) {
     return ActionChip(
       label: Text(text, style: AnchorTypography.bodySmall),
-      backgroundColor: AnchorColors.cardWhite,
+      backgroundColor: AnchorColors.creamBox,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: AnchorColors.borderSand),

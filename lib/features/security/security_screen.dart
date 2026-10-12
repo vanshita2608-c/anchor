@@ -48,11 +48,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AnchorColors.cardWhite,
+                color: AnchorColors.cardCreamElevated,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AnchorColors.borderSand),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+                  BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
                 ],
               ),
               child: Row(
@@ -66,7 +66,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                         child: CircularProgressIndicator(
                           value: 0.92,
                           strokeWidth: 8,
-                          backgroundColor: AnchorColors.bgWarmCream,
+                          backgroundColor: AnchorColors.creamBox,
                           valueColor: const AlwaysStoppedAnimation<Color>(AnchorColors.statusMint),
                         ),
                       ),
@@ -95,42 +95,49 @@ class _SecurityScreenState extends State<SecurityScreen> {
 
             Container(
               decoration: BoxDecoration(
-                color: AnchorColors.cardWhite,
+                color: AnchorColors.cardCreamElevated,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AnchorColors.borderSand),
               ),
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    activeColor: AnchorColors.primaryNavy,
-                    title: Text('Face ID / Fingerprint Unlock', style: AnchorTypography.titleSmall),
-                    subtitle: Text('Unlock Anchor securely without typing Master Password', style: AnchorTypography.bodySmall),
-                    value: _biometricsEnabled,
-                    onChanged: (val) async {
-                      setState(() => _biometricsEnabled = val);
-                      await BiometricService().setBiometricsEnabled(val);
-                    },
-                  ),
-                  const Divider(color: AnchorColors.borderSand, height: 1),
-                  SwitchListTile(
-                    activeColor: AnchorColors.primaryNavy,
-                    title: Text('Auto-Lock Vault on Background', style: AnchorTypography.titleSmall),
-                    subtitle: Text('Immediately locks vault when leaving the app', style: AnchorTypography.bodySmall),
-                    value: _autoLockEnabled,
-                    onChanged: (val) async {
-                      setState(() => _autoLockEnabled = val);
-                      await BiometricService().setAutoLockEnabled(val);
-                    },
-                  ),
-                  const Divider(color: AnchorColors.borderSand, height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.key, color: AnchorColors.primaryNavy),
-                    title: Text('Master Password & KEK Derivation', style: AnchorTypography.titleSmall),
-                    subtitle: Text('PBKDF2-HMAC-SHA256 • 100,000 Iterations', style: AnchorTypography.bodySmall),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AnchorColors.textMuted),
-                    onTap: () {},
-                  ),
-                ],
+              child: Material(
+                type: MaterialType.transparency,
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      activeColor: AnchorColors.primaryNavy,
+                      title: Text('Face ID / Fingerprint Unlock', style: AnchorTypography.titleSmall),
+                      subtitle: Text('Unlock Anchor securely without typing Master Password', style: AnchorTypography.bodySmall),
+                      value: _biometricsEnabled,
+                      onChanged: (val) async {
+                        setState(() => _biometricsEnabled = val);
+                        await BiometricService().setBiometricsEnabled(val);
+                      },
+                    ),
+                    const Divider(color: AnchorColors.borderSand, height: 1),
+                    SwitchListTile(
+                      activeColor: AnchorColors.primaryNavy,
+                      title: Text('Auto-Lock Vault on Background', style: AnchorTypography.titleSmall),
+                      subtitle: Text('Immediately locks vault when leaving the app', style: AnchorTypography.bodySmall),
+                      value: _autoLockEnabled,
+                      onChanged: (val) async {
+                        setState(() => _autoLockEnabled = val);
+                        await BiometricService().setAutoLockEnabled(val);
+                      },
+                    ),
+                    const Divider(color: AnchorColors.borderSand, height: 1),
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(color: AnchorColors.creamBox, shape: BoxShape.circle),
+                        child: const Icon(Icons.key, color: AnchorColors.primaryNavy, size: 18),
+                      ),
+                      title: Text('Master Password & KEK Derivation', style: AnchorTypography.titleSmall),
+                      subtitle: Text('PBKDF2-HMAC-SHA256 • 100,000 Iterations', style: AnchorTypography.bodySmall),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AnchorColors.textMuted),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -140,7 +147,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
-                color: AnchorColors.cardWhite,
+                color: AnchorColors.cardCreamElevated,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AnchorColors.borderSand),
               ),
@@ -161,13 +168,20 @@ class _SecurityScreenState extends State<SecurityScreen> {
   }
 
   Widget _buildAuditTile(String title, String subtitle, IconData icon) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AnchorColors.bgWarmCream,
-        child: Icon(icon, size: 18, color: AnchorColors.primaryNavy),
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: const BoxDecoration(
+            color: AnchorColors.creamBox,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 18, color: AnchorColors.primaryNavy),
+        ),
+        title: Text(title, style: AnchorTypography.titleSmall),
+        subtitle: Text(subtitle, style: AnchorTypography.bodySmall),
       ),
-      title: Text(title, style: AnchorTypography.titleSmall),
-      subtitle: Text(subtitle, style: AnchorTypography.bodySmall),
     );
   }
 }

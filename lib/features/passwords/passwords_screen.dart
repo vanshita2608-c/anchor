@@ -96,7 +96,7 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AnchorColors.cardWhite,
+      backgroundColor: AnchorColors.cardCreamElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -258,8 +258,8 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
                     )),
                     selected: isSelected,
                     selectedColor: AnchorColors.primaryNavy,
-                    backgroundColor: AnchorColors.cardWhite,
-                    side: const BorderSide(color: AnchorColors.borderSand),
+                    backgroundColor: AnchorColors.creamBox,
+                    side: BorderSide(color: isSelected ? AnchorColors.primaryNavy : AnchorColors.borderSand),
                     onSelected: (val) => setState(() => _selectedCategory = cat),
                   ),
                 );
@@ -306,9 +306,12 @@ class _PasswordsScreenState extends State<PasswordsScreen> {
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AnchorColors.cardWhite,
+                        color: AnchorColors.cardCreamElevated,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AnchorColors.borderSand),
+                        boxShadow: [
+                          BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                        ],
                       ),
                       child: Row(
                         children: [

@@ -52,12 +52,12 @@ class WelcomeScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
-                          color: AnchorColors.cardWhite,
+                          color: AnchorColors.cardCreamElevated,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: AnchorColors.borderSand),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
+                              color: AnchorColors.primaryNavy.withValues(alpha: 0.03),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -133,7 +133,7 @@ class WelcomeScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AnchorColors.bgWarmCream,
+            color: AnchorColors.creamBox,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: AnchorColors.primaryNavy, size: 22),

@@ -18,10 +18,28 @@ class AnchorColors {
   static const Color ceruleanLight = Color(0xFF38BDF8);
   static const Color ceruleanTint = Color(0xFFE6F4FA);
 
-  // App Background (100% Exact Match to ANCHOR_APP_LOGO.png background: #FCF4E0)
+  // App Background & Surface System (Harmonized to logo background: #FCF4E0)
   static const Color bgWarmCream = Color(0xFFFCF4E0);
-  static const Color cardWhite = Color(0xFFFFFFFF);
-  static const Color borderSand = Color(0xFFEBE0C8);
+  
+  // Warm Card Surfaces (Replaces stark #FFFFFF white boxes with rich, warm cream tones)
+  static const Color cardWhite = Color(0xFFFAF2DE); // Warm ivory surface
+  static const Color cardCream = Color(0xFFF6EBCC); // Warm cream container surface
+  static const Color cardCreamElevated = Color(0xFFFFF9EE); // Soft elevated warm ivory
+  static const Color creamBox = Color(0xFFF3E5C3); // Warm cream icon/button container box
+  
+  // Rich Dark Navy Hero Cards & Surfaces
+  static const Color cardNavy = Color(0xFF0C1E38);
+
+  // Borders & Dividers
+  static const Color borderSand = Color(0xFFE5D5B3); // Warm sand border
+  static const Color borderSandLight = Color(0xFFF2E6CD);
+
+  // Soft Tinted Containers (Replaces stark white icon boxes)
+  static Color navyTint = const Color(0xFF0C1E38).withOpacity(0.08);
+  static Color tealTint = const Color(0xFF0086C0).withOpacity(0.10);
+  static Color mintTint = const Color(0xFF059669).withOpacity(0.10);
+  static Color coralTint = const Color(0xFFDC2626).withOpacity(0.10);
+  static Color amberTint = const Color(0xFFD97706).withOpacity(0.10);
 
   // Dark Mode Backgrounds & Surfaces
   static const Color bgDarkAbyssal = Color(0xFF0A111E);

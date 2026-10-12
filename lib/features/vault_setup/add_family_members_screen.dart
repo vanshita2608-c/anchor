@@ -81,7 +81,7 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AnchorColors.cardWhite,
+      backgroundColor: AnchorColors.cardCreamElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -176,9 +176,12 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AnchorColors.cardWhite,
+                        color: AnchorColors.cardCreamElevated,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: AnchorColors.borderSand),
+                        boxShadow: [
+                          BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -202,12 +205,12 @@ class _AddFamilyMembersScreenState extends State<AddFamilyMembersScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AnchorColors.bgWarmCream,
+                              color: AnchorColors.creamBox,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               member['role']!,
-                              style: AnchorTypography.labelMedium.copyWith(color: AnchorColors.ceruleanTeal),
+                              style: AnchorTypography.labelMedium.copyWith(color: AnchorColors.ceruleanTeal, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],

@@ -32,22 +32,31 @@ class _AnchorNavShellState extends State<AnchorNavShell> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: AnchorColors.cardWhite,
-        selectedItemColor: AnchorColors.primaryNavy,
-        unselectedItemColor: AnchorColors.textSecondary,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: AnchorTypography.labelMedium.copyWith(fontWeight: FontWeight.bold),
-        unselectedLabelStyle: AnchorTypography.labelMedium,
-        items: const [
-          BottomNavigationBarView(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarView(icon: Icon(Icons.folder_special_outlined), activeIcon: Icon(Icons.folder_special), label: 'Vault'),
-          BottomNavigationBarView(icon: Icon(Icons.group_outlined), activeIcon: Icon(Icons.group), label: 'Family'),
-          BottomNavigationBarView(icon: Icon(Icons.shield_outlined), activeIcon: Icon(Icons.shield), label: 'Security'),
-          BottomNavigationBarView(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AnchorColors.cardCream,
+          border: Border(
+            top: BorderSide(color: AnchorColors.borderSand, width: 1.0),
+          ),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          backgroundColor: AnchorColors.cardCream,
+          elevation: 0,
+          selectedItemColor: AnchorColors.primaryNavy,
+          unselectedItemColor: AnchorColors.textSecondary,
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: AnchorTypography.labelMedium.copyWith(fontWeight: FontWeight.bold),
+          unselectedLabelStyle: AnchorTypography.labelMedium,
+          items: const [
+            BottomNavigationBarView(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarView(icon: Icon(Icons.folder_special_outlined), activeIcon: Icon(Icons.folder_special), label: 'Vault'),
+            BottomNavigationBarView(icon: Icon(Icons.group_outlined), activeIcon: Icon(Icons.group), label: 'Family'),
+            BottomNavigationBarView(icon: Icon(Icons.shield_outlined), activeIcon: Icon(Icons.shield), label: 'Security'),
+            BottomNavigationBarView(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+          ],
+        ),
       ),
     );
   }

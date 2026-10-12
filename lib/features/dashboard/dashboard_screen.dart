@@ -138,15 +138,118 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AnchorColors.cardWhite,
+                      color: AnchorColors.creamBox,
                       shape: BoxShape.circle,
                       border: Border.all(color: AnchorColors.borderSand),
                     ),
-                    child: const Icon(Icons.notifications_none, color: AnchorColors.primaryNavy),
+                    child: const Icon(Icons.notifications_none, color: AnchorColors.primaryNavy, size: 22),
                   ),
                 ],
+              ),
+              const SizedBox(height: 20),
+
+              // Hero Vault Status & Security Header Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AnchorColors.primaryNavy, AnchorColors.navySurface],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.18), blurRadius: 16, offset: const Offset(0, 6)),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AnchorColors.ceruleanTeal.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.verified_user_outlined, color: AnchorColors.ceruleanLight, size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Zero-Knowledge Vault',
+                              style: AnchorTypography.titleSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AnchorColors.statusMint.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AnchorColors.statusMint.withOpacity(0.4)),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(width: 6, height: 6, decoration: const BoxDecoration(color: AnchorColors.statusMint, shape: BoxShape.circle)),
+                              const SizedBox(width: 6),
+                              Text('92% Health', style: AnchorTypography.labelMedium.copyWith(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'All credentials & document keys derived locally with AES-256-GCM.',
+                      style: AnchorTypography.bodySmall.copyWith(color: Colors.white.withOpacity(0.85)),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('24 Documents', style: AnchorTypography.titleSmall.copyWith(color: Colors.white)),
+                                Text('Identity & Legal', style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.ceruleanLight, fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('18 Passwords', style: AnchorTypography.titleSmall.copyWith(color: Colors.white)),
+                                Text('Encrypted Vault', style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.ceruleanLight, fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -193,11 +296,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AnchorColors.cardWhite,
+                  color: AnchorColors.cardCreamElevated,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AnchorColors.borderSand),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 3)),
+                    BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3)),
                   ],
                 ),
                 child: Column(
@@ -205,8 +308,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.warning_amber_rounded, color: AnchorColors.alertCoral, size: 20),
-                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AnchorColors.alertCoral.withOpacity(0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.warning_amber_rounded, color: AnchorColors.alertCoral, size: 20),
+                        ),
+                        const SizedBox(width: 10),
                         Text(
                           _expiring.isEmpty ? 'Expiring Soon' : 'Expiring Soon (${_expiring.length})',
                           style: AnchorTypography.titleMedium.copyWith(color: AnchorColors.alertCoral),
@@ -284,7 +394,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 12),
               Container(
                 decoration: BoxDecoration(
-                  color: AnchorColors.cardWhite,
+                  color: AnchorColors.cardCreamElevated,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AnchorColors.borderSand),
                 ),
@@ -325,17 +435,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AnchorColors.cardWhite,
+              color: color.withOpacity(0.12),
               shape: BoxShape.circle,
-              border: Border.all(color: AnchorColors.borderSand),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 3)),
-              ],
+              border: Border.all(color: color.withOpacity(0.3), width: 1.2),
             ),
             child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(height: 6),
-          Text(label, style: AnchorTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Text(label, style: AnchorTypography.bodySmall.copyWith(fontWeight: FontWeight.w600, color: AnchorColors.textPrimary)),
         ],
       ),
     );
@@ -344,7 +451,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildExpiryTile(String title, String subtitle, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: AnchorColors.primaryNavy),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AnchorColors.creamBox,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 18, color: AnchorColors.primaryNavy),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -371,9 +485,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AnchorColors.cardWhite,
+          color: AnchorColors.cardCreamElevated,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AnchorColors.borderSand),
+          boxShadow: [
+            BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,7 +498,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, color: AnchorColors.primaryNavy, size: 24),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AnchorColors.primaryNavy.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: AnchorColors.primaryNavy, size: 20),
+                ),
                 const Icon(Icons.arrow_forward, size: 16, color: AnchorColors.textMuted),
               ],
             ),
@@ -398,13 +522,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildActivityTile(String title, String subtitle, IconData icon) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AnchorColors.bgWarmCream,
-        child: Icon(icon, size: 18, color: AnchorColors.primaryNavy),
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AnchorColors.creamBox,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 18, color: AnchorColors.primaryNavy),
+        ),
+        title: Text(title, style: AnchorTypography.titleSmall),
+        subtitle: Text(subtitle, style: AnchorTypography.bodySmall),
       ),
-      title: Text(title, style: AnchorTypography.titleSmall),
-      subtitle: Text(subtitle, style: AnchorTypography.bodySmall),
     );
   }
 }

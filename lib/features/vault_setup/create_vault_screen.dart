@@ -85,7 +85,7 @@ class _CreateVaultScreenState extends State<CreateVaultScreen> {
                         runSpacing: 8,
                         children: _suggestions.map((s) {
                           return ActionChip(
-                            backgroundColor: AnchorColors.cardWhite,
+                            backgroundColor: AnchorColors.creamBox,
                             side: const BorderSide(color: AnchorColors.borderSand),
                             label: Text(s, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.primaryNavy)),
                             onPressed: () {

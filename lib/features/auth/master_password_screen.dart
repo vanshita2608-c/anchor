@@ -171,8 +171,8 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AnchorColors.cardWhite,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: AnchorColors.cardCreamElevated,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AnchorColors.borderSand)),
           title: Text('Vault Recovery Key', style: AnchorTypography.headlineMedium),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -187,7 +187,7 @@ class _MasterPasswordScreenState extends State<MasterPasswordScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AnchorColors.bgWarmCream,
+                  color: AnchorColors.creamBox,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: AnchorColors.borderSand),
                 ),

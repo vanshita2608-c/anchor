@@ -40,9 +40,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AnchorColors.cardWhite,
+                color: AnchorColors.cardCreamElevated,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AnchorColors.borderSand),
+                boxShadow: [
+                  BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                ],
               ),
               child: Row(
                 children: [
@@ -63,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 2),
                         Text(userEmail, style: AnchorTypography.bodySmall),
                         if (handleLine.isNotEmpty)
-                          Text(handleLine, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.ceruleanTeal)),
+                          Text(handleLine, style: AnchorTypography.bodySmall.copyWith(color: AnchorColors.ceruleanTeal, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -76,16 +79,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AnchorColors.cardWhite,
+                color: AnchorColors.cardCreamElevated,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AnchorColors.borderSand),
+                boxShadow: [
+                  BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.mark_email_read_outlined, color: AnchorColors.ceruleanTeal, size: 24),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(color: AnchorColors.creamBox, shape: BoxShape.circle),
+                        child: const Icon(Icons.mark_email_read_outlined, color: AnchorColors.ceruleanTeal, size: 22),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -119,14 +129,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Settings List
             Container(
               decoration: BoxDecoration(
-                color: AnchorColors.cardWhite,
+                color: AnchorColors.cardCreamElevated,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AnchorColors.borderSand),
               ),
-              child: Column(
+              child: Material(
+                type: MaterialType.transparency,
+                child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.explore_outlined, color: AnchorColors.primaryNavy),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(color: AnchorColors.creamBox, shape: BoxShape.circle),
+                      child: const Icon(Icons.explore_outlined, color: AnchorColors.primaryNavy, size: 18),
+                    ),
                     title: Text('Replay Anchor Feature Tour', style: AnchorTypography.titleSmall),
                     subtitle: Text('Review interactive product walkthrough', style: AnchorTypography.bodySmall),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AnchorColors.textMuted),
@@ -136,7 +152,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const Divider(color: AnchorColors.borderSand, height: 1),
                   ListTile(
-                    leading: const Icon(Icons.download_outlined, color: AnchorColors.primaryNavy),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(color: AnchorColors.creamBox, shape: BoxShape.circle),
+                      child: const Icon(Icons.download_outlined, color: AnchorColors.primaryNavy, size: 18),
+                    ),
                     title: Text('Export Encrypted Vault Data', style: AnchorTypography.titleSmall),
                     subtitle: Text('Download local backup of vault objects', style: AnchorTypography.bodySmall),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AnchorColors.textMuted),
@@ -148,7 +168,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const Divider(color: AnchorColors.borderSand, height: 1),
                   ListTile(
-                    leading: const Icon(Icons.delete_outline, color: AnchorColors.alertCoral),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: AnchorColors.alertCoral.withOpacity(0.12), shape: BoxShape.circle),
+                      child: const Icon(Icons.delete_outline, color: AnchorColors.alertCoral, size: 18),
+                    ),
                     title: Text('Delete Account & Clear Vault', style: AnchorTypography.titleSmall.copyWith(color: AnchorColors.alertCoral)),
                     subtitle: Text('Permanently wipes encryption keys and vault items', style: AnchorTypography.bodySmall),
                     onTap: () {},
@@ -156,6 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+          ),
             const SizedBox(height: 32),
 
             // Sign Out Button

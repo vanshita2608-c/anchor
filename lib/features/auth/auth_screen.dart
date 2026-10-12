@@ -276,7 +276,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: OutlinedButton(
                     onPressed: _isLoading ? null : _handleGoogleSignIn,
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: AnchorColors.cardWhite,
+                      backgroundColor: AnchorColors.cardCreamElevated,
                       side: const BorderSide(color: AnchorColors.borderSand, width: 1.5),
                     ),
                     child: Row(
@@ -326,7 +326,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: isSelected ? AnchorColors.primaryNavy : AnchorColors.cardWhite,
+                            color: isSelected ? AnchorColors.primaryNavy : AnchorColors.creamBox,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isSelected ? AnchorColors.primaryNavy : AnchorColors.borderSand,

@@ -56,8 +56,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AnchorColors.cardWhite,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: AnchorColors.cardCreamElevated,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AnchorColors.borderSand)),
           title: Text('Add Emergency Contact', style: AnchorTypography.headlineMedium),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -195,15 +195,22 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AnchorColors.cardWhite,
+                  color: AnchorColors.cardCreamElevated,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: AnchorColors.borderSand),
+                  boxShadow: [
+                    BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                  ],
                 ),
                 child: Row(
                   children: [
-                    const CircleAvatar(
-                      backgroundColor: AnchorColors.bgWarmCream,
-                      child: Icon(Icons.phone_in_talk_outlined, color: AnchorColors.primaryNavy, size: 20),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        color: AnchorColors.creamBox,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.phone_in_talk_outlined, color: AnchorColors.primaryNavy, size: 18),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -237,44 +244,47 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
 
             Container(
               decoration: BoxDecoration(
-                color: AnchorColors.cardWhite,
+                color: AnchorColors.cardCreamElevated,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AnchorColors.borderSand),
               ),
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    activeColor: AnchorColors.primaryNavy,
-                    title: Text('Share Health & Insurance Documents', style: AnchorTypography.titleSmall),
-                    subtitle: Text('Allows emergency access to health policies & medical records', style: AnchorTypography.bodySmall),
-                    value: _shareInsuranceInEmergency,
-                    onChanged: (val) => setState(() => _shareInsuranceInEmergency = val),
-                  ),
-                  const Divider(color: AnchorColors.borderSand, height: 1),
-                  SwitchListTile(
-                    activeColor: AnchorColors.primaryNavy,
-                    title: Text('Share Property Deeds & Agreements', style: AnchorTypography.titleSmall),
-                    subtitle: Text('Grants legacy access to legal real estate deeds', style: AnchorTypography.bodySmall),
-                    value: _sharePropertyDocsInEmergency,
-                    onChanged: (val) => setState(() => _sharePropertyDocsInEmergency = val),
-                  ),
-                  const Divider(color: AnchorColors.borderSand, height: 1),
-                  SwitchListTile(
-                    activeColor: AnchorColors.primaryNavy,
-                    title: Text('Share Family OTT & Utility Credentials', style: AnchorTypography.titleSmall),
-                    subtitle: Text('Shares family logins (Netflix, Wi-Fi, Prime)', style: AnchorTypography.bodySmall),
-                    value: _shareFamilyOttPasswords,
-                    onChanged: (val) => setState(() => _shareFamilyOttPasswords = val),
-                  ),
-                  const Divider(color: AnchorColors.borderSand, height: 1),
-                  SwitchListTile(
-                    activeColor: AnchorColors.primaryNavy,
-                    title: Text('Share Personal Banking Credentials', style: AnchorTypography.titleSmall),
-                    subtitle: Text('Strictly restricted unless verified by 2 legal admins', style: AnchorTypography.bodySmall),
-                    value: _sharePersonalBankAccounts,
-                    onChanged: (val) => setState(() => _sharePersonalBankAccounts = val),
-                  ),
-                ],
+              child: Material(
+                type: MaterialType.transparency,
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      activeColor: AnchorColors.primaryNavy,
+                      title: Text('Share Health & Insurance Documents', style: AnchorTypography.titleSmall),
+                      subtitle: Text('Allows emergency access to health policies & medical records', style: AnchorTypography.bodySmall),
+                      value: _shareInsuranceInEmergency,
+                      onChanged: (val) => setState(() => _shareInsuranceInEmergency = val),
+                    ),
+                    const Divider(color: AnchorColors.borderSand, height: 1),
+                    SwitchListTile(
+                      activeColor: AnchorColors.primaryNavy,
+                      title: Text('Share Property Deeds & Agreements', style: AnchorTypography.titleSmall),
+                      subtitle: Text('Grants legacy access to legal real estate deeds', style: AnchorTypography.bodySmall),
+                      value: _sharePropertyDocsInEmergency,
+                      onChanged: (val) => setState(() => _sharePropertyDocsInEmergency = val),
+                    ),
+                    const Divider(color: AnchorColors.borderSand, height: 1),
+                    SwitchListTile(
+                      activeColor: AnchorColors.primaryNavy,
+                      title: Text('Share Family OTT & Utility Credentials', style: AnchorTypography.titleSmall),
+                      subtitle: Text('Shares family logins (Netflix, Wi-Fi, Prime)', style: AnchorTypography.bodySmall),
+                      value: _shareFamilyOttPasswords,
+                      onChanged: (val) => setState(() => _shareFamilyOttPasswords = val),
+                    ),
+                    const Divider(color: AnchorColors.borderSand, height: 1),
+                    SwitchListTile(
+                      activeColor: AnchorColors.primaryNavy,
+                      title: Text('Share Personal Banking Credentials', style: AnchorTypography.titleSmall),
+                      subtitle: Text('Strictly restricted unless verified by 2 legal admins', style: AnchorTypography.bodySmall),
+                      value: _sharePersonalBankAccounts,
+                      onChanged: (val) => setState(() => _sharePersonalBankAccounts = val),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

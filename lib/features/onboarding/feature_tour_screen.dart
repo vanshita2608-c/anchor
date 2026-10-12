@@ -165,12 +165,12 @@ class _FeatureTourScreenState extends State<FeatureTourScreen> {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: AnchorColors.cardWhite,
+                            color: AnchorColors.creamBox,
                             shape: BoxShape.circle,
                             border: Border.all(color: AnchorColors.borderSand, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
+                                color: AnchorColors.primaryNavy.withOpacity(0.04),
                                 blurRadius: 16,
                                 offset: const Offset(0, 6),
                               ),
@@ -208,7 +208,7 @@ class _FeatureTourScreenState extends State<FeatureTourScreen> {
                         Container(
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: AnchorColors.cardWhite,
+                            color: AnchorColors.cardCreamElevated,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(color: AnchorColors.borderSand),
                           ),

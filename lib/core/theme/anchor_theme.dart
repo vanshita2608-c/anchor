@@ -31,13 +31,29 @@ class AnchorTheme {
       colorScheme: const ColorScheme.light(
         primary: AnchorColors.primaryNavy,
         secondary: AnchorColors.ceruleanTeal,
-        surface: AnchorColors.cardWhite,
+        surface: AnchorColors.cardCreamElevated,
         background: AnchorColors.bgWarmCream,
         error: AnchorColors.alertCoral,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: AnchorColors.textPrimary,
         onBackground: AnchorColors.textPrimary,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AnchorColors.cardWhite,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AnchorColors.borderSand, width: 1.2),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AnchorColors.cardWhite,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: AnchorColors.cardWhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AnchorColors.bgWarmCream,
@@ -82,7 +98,7 @@ class AnchorTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AnchorColors.cardWhite,
+        fillColor: AnchorColors.cardCreamElevated,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -104,11 +120,11 @@ class AnchorTheme {
         labelStyle: AnchorTypography.labelLarge,
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AnchorColors.cardWhite,
+        backgroundColor: AnchorColors.cardCream,
         selectedItemColor: AnchorColors.primaryNavy,
         unselectedItemColor: AnchorColors.textSecondary,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 4,
         selectedLabelStyle: AnchorTypography.labelMedium.copyWith(fontWeight: FontWeight.bold),
         unselectedLabelStyle: AnchorTypography.labelMedium,
       ),

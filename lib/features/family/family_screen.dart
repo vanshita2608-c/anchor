@@ -57,16 +57,19 @@ class _FamilyScreenState extends State<FamilyScreen> {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: AnchorColors.cardWhite,
+                    color: AnchorColors.cardCreamElevated,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AnchorColors.borderSand),
+                    boxShadow: [
+                      BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                    ],
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: const BoxDecoration(
-                          color: AnchorColors.bgWarmCream,
+                          color: AnchorColors.creamBox,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.shield, color: AnchorColors.primaryNavy, size: 28),
@@ -110,9 +113,12 @@ class _FamilyScreenState extends State<FamilyScreen> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AnchorColors.cardWhite,
+                      color: AnchorColors.cardCreamElevated,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AnchorColors.borderSand),
+                      boxShadow: [
+                        BoxShadow(color: AnchorColors.primaryNavy.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                      ],
                     ),
                     child: Row(
                       children: [
@@ -136,12 +142,12 @@ class _FamilyScreenState extends State<FamilyScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AnchorColors.bgWarmCream,
+                            color: AnchorColors.creamBox,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             m['role'] ?? 'Member',
-                            style: AnchorTypography.labelMedium.copyWith(color: AnchorColors.ceruleanTeal),
+                            style: AnchorTypography.labelMedium.copyWith(color: AnchorColors.ceruleanTeal, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
